@@ -1,0 +1,226 @@
+# Image Processing Workflow Node Specifications
+
+## Node Types and Their Specifications
+
+### 1. Input Node
+- **name**: "input"
+- **description**: "Receives the input image from the workflow"
+- **parameters**: {}
+- **inputs**: []
+- **outputs**: ["image"]
+- **operator**: "input"
+
+### 2. Output Node
+- **name**: "output"
+- **description**: "Outputs the final processed image"
+- **parameters**: {}
+- **inputs**: ["image"]
+- **outputs**: []
+- **operator**: "output"
+
+### 3. Gaussian Blur Node
+- **name**: "gaussian_blur"
+- **description**: "Applies Gaussian blur to reduce noise and smooth the image"
+- **parameters**: {
+    "kernel_size": {"type": "tuple", "default": [5, 5], "description": "Kernel size for blur (width, height)"},
+    "sigma_x": {"type": "float", "default": 0.0, "description": "Standard deviation in X direction"},
+    "sigma_y": {"type": "float", "default": 0.0, "description": "Standard deviation in Y direction"}
+  }
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "gaussian_blur"
+
+### 4. Median Blur Node
+- **name**: "median_blur"
+- **description**: "Applies median blur to remove salt-and-pepper noise"
+- **parameters**: {
+    "kernel_size": {"type": "int", "default": 5, "description": "Kernel size (must be odd number)"}
+  }
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "median_blur"
+
+### 5. Bilateral Filter Node
+- **name**: "bilateral_filter"
+- **description**: "Applies bilateral filter to preserve edges while smoothing"
+- **parameters**: {
+    "d": {"type": "int", "default": 15, "description": "Diameter of pixel neighborhood"},
+    "sigma_color": {"type": "float", "default": 75.0, "description": "Filter sigma in color space"},
+    "sigma_space": {"type": "float", "default": 75.0, "description": "Filter sigma in coordinate space"}
+  }
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "bilateral_filter"
+
+### 6. RGB to Gray Node
+- **name**: "rgb2gray"
+- **description**: "Converts RGB image to grayscale"
+- **parameters**: {}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "rgb2gray"
+
+### 7. Gray to RGB Node
+- **name**: "gray2rgb"
+- **description**: "Converts grayscale image to RGB"
+- **parameters**: {}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "gray2rgb"
+
+### 8. Canny Edge Detection Node
+- **name**: "canny_edge"
+- **description**: "Detects edges using Canny algorithm"
+- **parameters**: {
+    "threshold1": {"type": "float", "default": 100.0, "description": "First threshold for edge detection"},
+    "threshold2": {"type": "float", "default": 200.0, "description": "Second threshold for edge detection"},
+    "aperture_size": {"type": "int", "default": 3, "description": "Aperture size for Sobel operator"}
+  }
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "canny_edge"
+
+### 9. Sobel Edge Detection Node
+- **name**: "sobel_edge"
+- **description**: "Detects edges using Sobel operator"
+- **parameters**: {
+    "dx": {"type": "int", "default": 1, "description": "Order of derivative x"},
+    "dy": {"type": "int", "default": 1, "description": "Order of derivative y"},
+    "ksize": {"type": "int", "default": 3, "description": "Size of Sobel kernel"},
+    "scale": {"type": "float", "default": 1.0, "description": "Scale factor"},
+    "delta": {"type": "float", "default": 0.0, "description": "Delta added to scaled values"}
+  }
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "sobel_edge"
+
+### 10. Threshold Node
+- **name**: "threshold"
+- **description**: "Applies binary threshold to the image"
+- **parameters**: {
+    "thresh": {"type": "float", "default": 127.0, "description": "Threshold value"},
+    "maxval": {"type": "float", "default": 255.0, "description": "Maximum value for threshold"},
+    "type": {"type": "string", "default": "THRESH_BINARY", "description": "Threshold type"}
+  }
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "threshold"
+
+### 11. Adaptive Threshold Node
+- **name**: "adaptive_threshold"
+- **description**: "Applies adaptive threshold to the image"
+- **parameters**: {
+    "max_value": {"type": "float", "default": 255.0, "description": "Maximum value for threshold"},
+    "adaptive_method": {"type": "string", "default": "ADAPTIVE_THRESH_GAUSSIAN_C", "description": "Adaptive method"},
+    "threshold_type": {"type": "string", "default": "THRESH_BINARY", "description": "Threshold type"},
+    "block_size": {"type": "int", "default": 11, "description": "Block size for adaptive threshold"},
+    "c": {"type": "float", "default": 2.0, "description": "Constant subtracted from mean"}
+  }
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "adaptive_threshold"
+
+### 12. Morphological Operations Node
+- **name**: "morphology"
+- **description**: "Applies morphological operations (erosion, dilation, opening, closing)"
+- **parameters**: {
+    "operation": {"type": "string", "default": "MORPH_OPEN", "description": "Morphological operation type"},
+    "kernel_size": {"type": "int", "default": 3, "description": "Size of morphological kernel"},
+    "iterations": {"type": "int", "default": 1, "description": "Number of iterations"}
+  }
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "morphology"
+
+### 13. Histogram Equalization Node
+- **name**: "histogram_equalization"
+- **description**: "Enhances image contrast using histogram equalization"
+- **parameters**: {}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "histogram_equalization"
+
+### 14. CLAHE Node
+- **name**: "clahe"
+- **description**: "Applies Contrast Limited Adaptive Histogram Equalization"
+- **parameters**: {
+    "clip_limit": {"type": "float", "default": 2.0, "description": "Clip limit for CLAHE"},
+    "tile_grid_size": {"type": "tuple", "default": [8, 8], "description": "Grid size for CLAHE"}
+  }
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "clahe"
+
+### 15. Color Space Conversion Node
+- **name**: "color_space_convert"
+- **description**: "Converts image between different color spaces"
+- **parameters**: {
+    "code": {"type": "string", "default": "COLOR_BGR2HSV", "description": "Color conversion code"}
+  }
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "color_space_convert"
+
+### 16. Resize Node
+- **name**: "resize"
+- **description**: "Resizes the image to specified dimensions"
+- **parameters**: {
+    "width": {"type": "int", "default": 640, "description": "Target width"},
+    "height": {"type": "int", "default": 480, "description": "Target height"},
+    "interpolation": {"type": "string", "default": "INTER_LINEAR", "description": "Interpolation method"}
+  }
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "resize"
+
+### 17. Crop Node
+- **name**: "crop"
+- **description**: "Crops the image to specified region"
+- **parameters**: {
+    "x": {"type": "int", "default": 0, "description": "Starting x coordinate"},
+    "y": {"type": "int", "default": 0, "description": "Starting y coordinate"},
+    "width": {"type": "int", "default": 100, "description": "Crop width"},
+    "height": {"type": "int", "default": 100, "description": "Crop height"}
+  }
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "crop"
+
+### 18. Brightness and Contrast Node
+- **name**: "brightness_contrast"
+- **description**: "Adjusts brightness and contrast of the image"
+- **parameters**: {
+    "alpha": {"type": "float", "default": 1.0, "description": "Contrast control (1.0-3.0)"},
+    "beta": {"type": "float", "default": 0.0, "description": "Brightness control (-100 to 100)"}
+  }
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "brightness_contrast"
+
+### 19. Gamma Correction Node
+- **name**: "gamma_correction"
+- **description**: "Applies gamma correction to the image"
+- **parameters**: {
+    "gamma": {"type": "float", "default": 1.0, "description": "Gamma value (0.1-3.0)"}
+  }
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "gamma_correction"
+
+### 20. Noise Addition Node
+- **name**: "add_noise"
+- **description**: "Adds Gaussian noise to the image"
+- **parameters**: {
+    "mean": {"type": "float", "default": 0.0, "description": "Mean of Gaussian noise"},
+    "std": {"type": "float", "default": 25.0, "description": "Standard deviation of Gaussian noise"}
+  }
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "add_noise"
+
+## Workflow Connection Rules:
+- Each node can have multiple inputs and outputs
+- Input nodes can only be connected to processing nodes
+- Output nodes can only receive connections from processing nodes
+- Processing nodes can connect to other processing nodes or output nodes
+- All connections must match input/output types (image to image) 
