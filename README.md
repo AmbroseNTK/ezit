@@ -5,10 +5,12 @@ An intelligent image processing application that uses AI to generate and execute
 ## Features
 
 - 🤖 **AI-Powered Workflow Generation**: Describe what you want to do in natural language
-- 🖼️ **20+ Image Processing Operations**: Blur, edge detection, color conversion, and more
+- 🖼️ **21+ Image Processing Operations**: Blur, edge detection, color conversion, text overlay, and more
 - 🔄 **Workflow Execution**: Automatic execution of generated workflows
+- 📊 **Workflow Visualization**: Interactive diagrams showing the processing pipeline
 - 🎨 **Streamlit UI**: Beautiful web interface for easy interaction
-- 📊 **Real-time Results**: See your processed images instantly
+- 🖥️ **PyQt Desktop App**: Native desktop application with Fluent Design
+- 📈 **Real-time Results**: See your processed images instantly
 
 ## Quick Start
 
@@ -58,6 +60,47 @@ export OPENAI_API_KEY=your_key_here
 streamlit run main.py
 ```
 
+## Desktop Application
+
+For a native desktop experience, you can also run the PyQt application:
+
+### Quick Start (Desktop)
+
+```bash
+# Setup environment
+./setup.sh
+
+# Install desktop dependencies
+make install-desktop
+
+# Set your OpenAI API key
+export OPENAI_API_KEY=your_key_here
+
+# Run desktop application
+make run-desktop-venv
+```
+
+### Desktop Features
+
+- **🖥️ Native Desktop Experience**: No browser required
+- **🎨 Fluent Design**: Modern Windows-style interface
+- **📱 Responsive Layout**: Resizable panels and tabs
+- **🔍 Image Zoom**: Mouse wheel zoom on images
+- **📊 Tabbed Interface**: Images, Workflow, and JSON views
+- **⚡ Multi-threaded**: Non-blocking UI during processing
+- **🎯 Progress Tracking**: Real-time progress updates
+
+### Desktop vs Web
+
+| Feature | Streamlit (Web) | PyQt (Desktop) |
+|---------|----------------|----------------|
+| **Platform** | Browser-based | Native desktop |
+| **Installation** | Simple | Requires PyQt |
+| **Performance** | Good | Excellent |
+| **Offline** | Limited | Full support |
+| **UI Customization** | Limited | Full control |
+| **File Handling** | Upload only | Native dialogs |
+
 ## Available Makefile Commands
 
 ```bash
@@ -66,6 +109,9 @@ make setup         # Create virtual environment and install dependencies
 make install       # Install dependencies in existing environment
 make run           # Run the Streamlit application
 make run-venv      # Run with virtual environment
+make run-desktop   # Run the PyQt desktop application
+make run-desktop-venv # Run desktop app with virtual environment
+make install-desktop # Install desktop dependencies
 make test          # Run basic tests
 make clean         # Remove virtual environment and cache files
 make format        # Format code with black
@@ -82,12 +128,39 @@ make type-check    # Run type checks with mypy
      - "Detect edges and apply threshold"
      - "Increase brightness and contrast"
      - "Apply Gaussian blur with kernel size 7x7"
+     - "Add text 'Hello World' in white color at position (50, 50)"
+     - "Add red text 'Sample' with large font size"
+     - "Convert to grayscale and add text overlay"
 3. **Generate & Execute**: Click the button to let AI generate and run the workflow
 4. **View Results**: See the processed image and the generated workflow JSON
 
+## Workflow Visualization
+
+The application provides multiple ways to visualize your generated workflows:
+
+### 📊 Interactive Diagram
+- **Interactive Graph**: Drag, zoom, and explore the workflow nodes
+- **Color-coded Nodes**: 
+  - 🟢 Green: Input nodes
+  - 🔵 Blue: Processing nodes  
+  - 🔴 Red: Output nodes
+- **Animated Connections**: See the data flow between nodes
+
+### 📋 Detailed View
+- **Node Details**: Expandable sections showing all node parameters
+- **Connection List**: Clear view of how nodes are connected
+- **JSON Export**: Full workflow specification for reference
+
+### 🔧 Installation Options
+- **Basic**: Uses Mermaid diagrams (built-in)
+- **Enhanced**: Install `streamlit-agraph` for interactive graphs:
+  ```bash
+  pip install streamlit-agraph
+  ```
+
 ## Available Image Processing Operations
 
-The system supports 20+ OpenCV operations:
+The system supports 21+ OpenCV operations:
 
 - **Blur Operations**: Gaussian blur, median blur, bilateral filter
 - **Edge Detection**: Canny, Sobel
@@ -97,7 +170,7 @@ The system supports 20+ OpenCV operations:
 - **Enhancement**: Histogram equalization, CLAHE
 - **Geometric**: Resize, crop
 - **Adjustments**: Brightness/contrast, gamma correction
-- **Effects**: Noise addition
+- **Effects**: Noise addition, text overlay
 
 ## Requirements
 

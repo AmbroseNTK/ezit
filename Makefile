@@ -28,6 +28,8 @@ install:
 	pip install --upgrade pip
 	pip install -r requirements.txt
 	@echo "Dependencies installed!"
+	@echo "Note: If you want interactive workflow visualization, install streamlit-agraph:"
+	@echo "pip install streamlit-agraph"
 
 # Run the Streamlit application
 run:
@@ -40,6 +42,18 @@ run:
 run-venv:
 	@echo "Starting Streamlit application with virtual environment..."
 	.venv/bin/streamlit run main.py
+
+# Run desktop application
+run-desktop:
+	@echo "Starting PyQt desktop application..."
+	@echo "Make sure to set your OPENAI_API_KEY environment variable"
+	@echo "You can set it with: export OPENAI_API_KEY=your_key_here"
+	python desktop_app.py
+
+# Run desktop application with virtual environment
+run-desktop-venv:
+	@echo "Starting PyQt desktop application with virtual environment..."
+	.venv/bin/python desktop_app.py
 
 # Clean up virtual environment and cache files
 clean:
@@ -72,6 +86,7 @@ check-env:
 install-dev:
 	@echo "Installing development dependencies..."
 	pip install -r requirements.txt
+	pip install streamlit-agraph
 	pip install black flake8 mypy pytest
 	@echo "Development dependencies installed!"
 
@@ -88,4 +103,10 @@ lint:
 # Type check
 type-check:
 	@echo "Running type checks with mypy..."
-	mypy *.py --ignore-missing-imports 
+	mypy *.py --ignore-missing-imports
+
+# Install desktop dependencies
+install-desktop:
+	@echo "Installing desktop application dependencies..."
+	pip install PyQt6 PyQt6-Qt6 PyQt6-sip qt-material
+	@echo "Desktop dependencies installed!" 

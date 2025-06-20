@@ -465,6 +465,48 @@ class WorkflowProcessor:
             result = np.clip(result, 0, 255).astype(np.uint8)
             return {"image": result}
             
+        elif operator == "add_text":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for add_text operation")
+            
+            # Get text parameters
+            text = node.parameters.get("text", "Hello World")
+            x = node.parameters.get("x", 10)
+            y = node.parameters.get("y", 30)
+            font_scale = node.parameters.get("font_scale", 1.0)
+            color = tuple(node.parameters.get("color", [255, 255, 255]))  # BGR format
+            thickness = node.parameters.get("thickness", 2)
+            font_name = node.parameters.get("font", "FONT_HERSHEY_SIMPLEX")
+            
+            # Convert string to cv2 font constant
+            if font_name == "FONT_HERSHEY_SIMPLEX":
+                font = cv2.FONT_HERSHEY_SIMPLEX
+            elif font_name == "FONT_HERSHEY_PLAIN":
+                font = cv2.FONT_HERSHEY_PLAIN
+            elif font_name == "FONT_HERSHEY_DUPLEX":
+                font = cv2.FONT_HERSHEY_DUPLEX
+            elif font_name == "FONT_HERSHEY_COMPLEX":
+                font = cv2.FONT_HERSHEY_COMPLEX
+            elif font_name == "FONT_HERSHEY_TRIPLEX":
+                font = cv2.FONT_HERSHEY_TRIPLEX
+            elif font_name == "FONT_HERSHEY_COMPLEX_SMALL":
+                font = cv2.FONT_HERSHEY_COMPLEX_SMALL
+            elif font_name == "FONT_HERSHEY_SCRIPT_SIMPLEX":
+                font = cv2.FONT_HERSHEY_SCRIPT_SIMPLEX
+            elif font_name == "FONT_HERSHEY_SCRIPT_COMPLEX":
+                font = cv2.FONT_HERSHEY_SCRIPT_COMPLEX
+            else:
+                font = cv2.FONT_HERSHEY_SIMPLEX  # Default
+            
+            # Create a copy of the image to avoid modifying the original
+            result = image.copy()
+            
+            # Add text to the image
+            cv2.putText(result, text, (x, y), font, font_scale, color, thickness)
+            
+            return {"image": result}
+            
         else:
             raise ValueError(f"Unknown operator: {operator}")
     
@@ -572,13 +614,19 @@ The workflow should be returned as a JSON object with this structure:
     ]
 }}
 
-Rules:
+CRITICAL RULES:
 - Always start with an "input" node
 - Always end with an "output" node
 - Connect nodes sequentially through their inputs/outputs
 - Use appropriate parameters for each operation
 - Keep the workflow simple and focused on the user's request
-- Ensure all connections are valid (image to image)"""
+- Ensure all connections are valid (image to image)
+- Use ONLY valid JSON syntax - no mathematical expressions like "1280 - 300"
+- Use actual calculated values instead of expressions
+- For positioning, use reasonable fixed values (e.g., 50, 100, 200)
+- For colors, use BGR format as arrays: [255, 255, 255] for white, [0, 0, 255] for red
+- For text positioning, use simple integers like 50, 100, 200
+- Do not use variables or calculations in JSON values"""
         
         # Create user prompt
         user_prompt = f"""Please create an image processing workflow for the following request:
@@ -621,6 +669,8 @@ Please generate a JSON workflow that will process this image according to the us
 
             if response_text is None:
                 raise ValueError("No content received from OpenAI API")
+            
+            print("Extracting JSON from response...")
             workflow_json = self._extract_json_from_response(response_text)
             
             print(f"Generated workflow JSON: {workflow_json}")
@@ -628,7 +678,9 @@ Please generate a JSON workflow that will process this image according to the us
             return workflow_json
             
         except Exception as e:
-            raise Exception(f"Failed to generate workflow: {str(e)}")
+            print(f"Failed to generate workflow: {str(e)}")
+            print("Creating fallback workflow...")
+            return self._create_fallback_workflow(prompt)
     
     def _image_to_base64(self, image: np.ndarray) -> str:
         """Convert numpy image to base64 string"""
@@ -656,10 +708,68 @@ Please generate a JSON workflow that will process this image according to the us
             
         json_str = response_text[json_start:json_end]
         
+        # Clean up common JSON issues
+        json_str = self._clean_json_string(json_str)
+        
         try:
             return json.loads(json_str)
         except json.JSONDecodeError as e:
-            raise ValueError(f"Invalid JSON in response: {e}")
+            # Try to fix common JSON issues
+            json_str = self._fix_json_issues(json_str)
+            try:
+                return json.loads(json_str)
+            except json.JSONDecodeError as e2:
+                raise ValueError(f"Invalid JSON in response after fixing: {e2}. Original error: {e}")
+    
+    def _clean_json_string(self, json_str: str) -> str:
+        """Clean up common JSON string issues"""
+        # Remove any trailing commas before closing braces/brackets
+        json_str = re.sub(r',(\s*[}\]])', r'\1', json_str)
+        
+        # Remove any comments (though JSON doesn't support comments)
+        json_str = re.sub(r'//.*$', '', json_str, flags=re.MULTILINE)
+        json_str = re.sub(r'/\*.*?\*/', '', json_str, flags=re.DOTALL)
+        
+        return json_str
+    
+    def _fix_json_issues(self, json_str: str) -> str:
+        """Fix common JSON issues like mathematical expressions"""
+        # Fix mathematical expressions in values
+        # Replace expressions like "1280 - 300" with calculated values
+        def replace_math(match):
+            try:
+                # Extract the mathematical expression
+                expr = match.group(1)
+                # Evaluate the expression safely
+                result = eval(expr)
+                return str(result)
+            except:
+                # If evaluation fails, return a default value
+                return "100"
+        
+        # Find and replace mathematical expressions in parameter values
+        json_str = re.sub(r':\s*"([^"]*)"', lambda m: self._fix_math_in_string(m), json_str)
+        json_str = re.sub(r':\s*(\d+\s*[-+*/]\s*\d+)', replace_math, json_str)
+        
+        return json_str
+    
+    def _fix_math_in_string(self, match) -> str:
+        """Fix mathematical expressions within quoted strings"""
+        content = match.group(1)
+        # Look for patterns like "1280 - 300" within the string
+        if re.search(r'\d+\s*[-+*/]\s*\d+', content):
+            try:
+                # Extract and evaluate the mathematical expression
+                expr_match = re.search(r'(\d+\s*[-+*/]\s*\d+)', content)
+                if expr_match:
+                    expr = expr_match.group(1)
+                    result = eval(expr)
+                    # Replace the expression with the result
+                    content = content.replace(expr, str(result))
+            except:
+                # If evaluation fails, keep the original
+                pass
+        return f': "{content}"'
     
     def create_workflow_from_json(self, workflow_json: Dict[str, Any]) -> WorkflowProcessor:
         """Create a WorkflowProcessor instance from JSON workflow"""
@@ -680,6 +790,81 @@ Please generate a JSON workflow that will process this image according to the us
             )
         
         return processor
+    
+    def _create_fallback_workflow(self, prompt: str) -> Dict[str, Any]:
+        """Create a simple fallback workflow when AI generation fails"""
+        # Create a basic workflow based on common keywords in the prompt
+        prompt_lower = prompt.lower()
+        
+        nodes = [
+            {
+                "node_id": "input_node",
+                "node_type": "input",
+                "parameters": {},
+                "inputs": [],
+                "outputs": ["image"]
+            }
+        ]
+        
+        # Add processing nodes based on prompt keywords
+        if "gray" in prompt_lower or "grayscale" in prompt_lower:
+            nodes.append({
+                "node_id": "gray_node",
+                "node_type": "rgb2gray",
+                "parameters": {},
+                "inputs": ["image"],
+                "outputs": ["image"]
+            })
+        
+        if "blur" in prompt_lower:
+            nodes.append({
+                "node_id": "blur_node",
+                "node_type": "gaussian_blur",
+                "parameters": {"kernel_size": [5, 5]},
+                "inputs": ["image"],
+                "outputs": ["image"]
+            })
+        
+        if "text" in prompt_lower:
+            nodes.append({
+                "node_id": "text_node",
+                "node_type": "add_text",
+                "parameters": {
+                    "text": "Sample Text",
+                    "x": 50,
+                    "y": 50,
+                    "font_scale": 1.0,
+                    "color": [255, 255, 255],
+                    "thickness": 2,
+                    "font": "FONT_HERSHEY_SIMPLEX"
+                },
+                "inputs": ["image"],
+                "outputs": ["image"]
+            })
+        
+        # Add output node
+        nodes.append({
+            "node_id": "output_node",
+            "node_type": "output",
+            "parameters": {},
+            "inputs": ["image"],
+            "outputs": []
+        })
+        
+        # Create connections
+        connections = []
+        for i in range(len(nodes) - 1):
+            connections.append({
+                "from_node": nodes[i]["node_id"],
+                "to_node": nodes[i + 1]["node_id"],
+                "from_output": "image",
+                "to_input": "image"
+            })
+        
+        return {
+            "nodes": nodes,
+            "connections": connections
+        }
 
 def process_image_with_ai_workflow(image: np.ndarray, prompt: str, api_key: Optional[str] = None) -> Tuple[np.ndarray, Dict[str, Any]]:
     """Main function to process image with AI-generated workflow"""

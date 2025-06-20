@@ -2,4 +2,10 @@ streamlit
 opencv-python
 numpy
 Pillow
-openai 
+openai
+graphviz
+streamlit-agraph
+PyQt6
+PyQt6-Qt6
+PyQt6-sip
+qt-material 

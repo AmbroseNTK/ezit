@@ -218,6 +218,22 @@
 - **outputs**: ["image"]
 - **operator**: "add_noise"
 
+### 21. Add Text Node
+- **name**: "add_text"
+- **description**: "Adds text overlay to the image"
+- **parameters**: {
+    "text": {"type": "string", "default": "Hello World", "description": "Text to add to the image"},
+    "x": {"type": "int", "default": 10, "description": "X coordinate for text position"},
+    "y": {"type": "int", "default": 30, "description": "Y coordinate for text position"},
+    "font_scale": {"type": "float", "default": 1.0, "description": "Font scale factor"},
+    "color": {"type": "tuple", "default": [255, 255, 255], "description": "Text color (B, G, R)"},
+    "thickness": {"type": "int", "default": 2, "description": "Text thickness"},
+    "font": {"type": "string", "default": "FONT_HERSHEY_SIMPLEX", "description": "Font type"}
+  }
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "add_text"
+
 ## Workflow Connection Rules:
 - Each node can have multiple inputs and outputs
 - Input nodes can only be connected to processing nodes
