@@ -1,31 +1,46 @@
 #!/bin/bash
 
-# AI Image Workflow Processor - Desktop Launcher
+# Launch script for AI Image Workflow Processor Desktop App
 
-set -e
+echo "Starting AI Image Workflow Processor Desktop App..."
 
-echo "🚀 Launching AI Image Workflow Processor - Desktop"
-
-# Check if virtual environment exists
-if [ ! -d ".venv" ]; then
-    echo "❌ Virtual environment not found. Please run setup first:"
-    echo "   ./setup.sh"
+# Check if Python 3 is available
+if ! command -v python3 &> /dev/null; then
+    echo "Error: Python 3 is not installed or not in PATH"
     exit 1
 fi
 
-# Check if desktop dependencies are installed
-if ! .venv/bin/python -c "import PyQt6" 2>/dev/null; then
-    echo "📦 Installing desktop dependencies..."
-    .venv/bin/pip install PyQt6 PyQt6-Qt6 PyQt6-sip qt-material
-    echo "✅ Desktop dependencies installed!"
-fi
+# Check if required packages are installed
+echo "Checking dependencies..."
+python3 -c "import PyQt6" 2>/dev/null || {
+    echo "Error: PyQt6 is not installed. Please run: pip install PyQt6"
+    exit 1
+}
 
-# Check for API key
-if [ -z "$OPENAI_API_KEY" ]; then
-    echo "⚠️  Warning: OPENAI_API_KEY not set"
-    echo "   You can set it with: export OPENAI_API_KEY=your_key_here"
-    echo "   Or enter it in the application when prompted"
-fi
+python3 -c "import cv2" 2>/dev/null || {
+    echo "Error: OpenCV is not installed. Please run: pip install opencv-python"
+    exit 1
+}
 
-echo "🎨 Starting desktop application..."
-.venv/bin/python desktop_app.py 
+python3 -c "import numpy" 2>/dev/null || {
+    echo "Error: NumPy is not installed. Please run: pip install numpy"
+    exit 1
+}
+
+# Try to import qfluentwidgets (optional)
+python3 -c "import qfluentwidgets" 2>/dev/null || {
+    echo "Warning: qfluentwidgets not found. App will use fallback UI components."
+    echo "For full Fluent Design experience, install: pip install PyQt-Fluent-Widgets"
+}
+
+# Launch the application
+echo "Launching desktop application..."
+python3 desktop_app.py
+
+# Check exit code
+if [ $? -eq 0 ]; then
+    echo "Application closed successfully."
+else
+    echo "Application exited with an error."
+    exit 1
+fi 

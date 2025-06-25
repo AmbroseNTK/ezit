@@ -1,250 +1,182 @@
 # AI Image Workflow Processor
 
-An intelligent image processing application that uses AI to generate and execute OpenCV workflows based on natural language descriptions.
+An AI-powered image processing application that uses natural language prompts to generate and execute OpenCV workflows. Available as both a Streamlit web app and a PyQt5 desktop application with a modern dark theme.
 
 ## Features
 
 - 🤖 **AI-Powered Workflow Generation**: Describe what you want to do in natural language
-- 🖼️ **21+ Image Processing Operations**: Blur, edge detection, color conversion, text overlay, and more
-- 🔄 **Workflow Execution**: Automatic execution of generated workflows
-- 📊 **Workflow Visualization**: Interactive diagrams showing the processing pipeline
-- 🎨 **Streamlit UI**: Beautiful web interface for easy interaction
-- 🖥️ **PyQt Desktop App**: Native desktop application with Fluent Design
-- 📈 **Real-time Results**: See your processed images instantly
+- 🖼️ **21+ Image Processing Operations**: Comprehensive OpenCV-based processing nodes
+- 📊 **Visual Workflow Diagrams**: Interactive graph visualization of processing pipelines
+- 🎨 **Modern Dark Theme**: Professional desktop interface with flat design
+- 🔄 **Real-time Processing**: Multi-threaded workflow execution with progress tracking
+- 📁 **File Management**: Open, process, and export images with ease
 
-## Quick Start
+## Installation
 
-### Option 1: Using the Setup Script (Recommended)
-
-```bash
-# Run the setup script
-./setup.sh
-
-# Set your OpenAI API key
-export OPENAI_API_KEY=your_key_here
-
-# Run the application
-make run-venv
-```
-
-### Option 2: Using Makefile
-
-```bash
-# Setup environment and install dependencies
-make setup
-
-# Activate virtual environment
-source .venv/bin/activate
-
-# Set your OpenAI API key
-export OPENAI_API_KEY=your_key_here
-
-# Run the application
-make run-venv
-```
-
-### Option 3: Manual Setup
-
-```bash
-# Create virtual environment
-python3 -m venv .venv
-source .venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Set your OpenAI API key
-export OPENAI_API_KEY=your_key_here
-
-# Run the application
-streamlit run main.py
-```
-
-## Desktop Application
-
-For a native desktop experience, you can also run the PyQt application:
-
-### Quick Start (Desktop)
-
-```bash
-# Setup environment
-./setup.sh
-
-# Install desktop dependencies
-make install-desktop
-
-# Set your OpenAI API key
-export OPENAI_API_KEY=your_key_here
-
-# Run desktop application
-make run-desktop-venv
-```
-
-### Desktop Features
-
-- **🖥️ Native Desktop Experience**: No browser required
-- **🎨 Fluent Design**: Modern Windows-style interface
-- **📱 Responsive Layout**: Resizable panels and tabs
-- **🔍 Image Zoom**: Mouse wheel zoom on images
-- **📊 Tabbed Interface**: Images, Workflow, and JSON views
-- **⚡ Multi-threaded**: Non-blocking UI during processing
-- **🎯 Progress Tracking**: Real-time progress updates
-
-### Desktop vs Web
-
-| Feature | Streamlit (Web) | PyQt (Desktop) |
-|---------|----------------|----------------|
-| **Platform** | Browser-based | Native desktop |
-| **Installation** | Simple | Requires PyQt |
-| **Performance** | Good | Excellent |
-| **Offline** | Limited | Full support |
-| **UI Customization** | Limited | Full control |
-| **File Handling** | Upload only | Native dialogs |
-
-## Available Makefile Commands
-
-```bash
-make help          # Show all available commands
-make setup         # Create virtual environment and install dependencies
-make install       # Install dependencies in existing environment
-make run           # Run the Streamlit application
-make run-venv      # Run with virtual environment
-make run-desktop   # Run the PyQt desktop application
-make run-desktop-venv # Run desktop app with virtual environment
-make install-desktop # Install desktop dependencies
-make test          # Run basic tests
-make clean         # Remove virtual environment and cache files
-make format        # Format code with black
-make lint          # Lint code with flake8
-make type-check    # Run type checks with mypy
-```
-
-## Usage
-
-1. **Upload an Image**: Use the file uploader to select an image (JPG, PNG)
-2. **Describe Your Request**: Enter a natural language description of what you want to do
-   - Examples:
-     - "Convert to grayscale and blur the image"
-     - "Detect edges and apply threshold"
-     - "Increase brightness and contrast"
-     - "Apply Gaussian blur with kernel size 7x7"
-     - "Add text 'Hello World' in white color at position (50, 50)"
-     - "Add red text 'Sample' with large font size"
-     - "Convert to grayscale and add text overlay"
-3. **Generate & Execute**: Click the button to let AI generate and run the workflow
-4. **View Results**: See the processed image and the generated workflow JSON
-
-## Workflow Visualization
-
-The application provides multiple ways to visualize your generated workflows:
-
-### 📊 Interactive Diagram
-- **Interactive Graph**: Drag, zoom, and explore the workflow nodes
-- **Color-coded Nodes**: 
-  - 🟢 Green: Input nodes
-  - 🔵 Blue: Processing nodes  
-  - 🔴 Red: Output nodes
-- **Animated Connections**: See the data flow between nodes
-
-### 📋 Detailed View
-- **Node Details**: Expandable sections showing all node parameters
-- **Connection List**: Clear view of how nodes are connected
-- **JSON Export**: Full workflow specification for reference
-
-### 🔧 Installation Options
-- **Basic**: Uses Mermaid diagrams (built-in)
-- **Enhanced**: Install `streamlit-agraph` for interactive graphs:
-  ```bash
-  pip install streamlit-agraph
-  ```
-
-## Available Image Processing Operations
-
-The system supports 21+ OpenCV operations:
-
-- **Blur Operations**: Gaussian blur, median blur, bilateral filter
-- **Edge Detection**: Canny, Sobel
-- **Color Operations**: RGB to grayscale, color space conversion
-- **Thresholding**: Binary, adaptive threshold
-- **Morphological**: Erosion, dilation, opening, closing
-- **Enhancement**: Histogram equalization, CLAHE
-- **Geometric**: Resize, crop
-- **Adjustments**: Brightness/contrast, gamma correction
-- **Effects**: Noise addition, text overlay
-
-## Requirements
+### Prerequisites
 
 - Python 3.8 or higher
 - OpenAI API key
-- Internet connection for AI workflow generation
 
-## Dependencies
+### Quick Start
 
-- `streamlit` - Web interface
-- `opencv-python` - Image processing
-- `numpy` - Numerical operations
-- `Pillow` - Image handling
-- `openai` - AI API integration
+1. **Clone the repository**:
+   ```bash
+   git clone <repository-url>
+   cd ezit
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   make install
+   ```
+
+3. **Set your OpenAI API key**:
+   ```bash
+   export OPENAI_API_KEY="your-api-key-here"
+   ```
+
+## Usage
+
+### Web Application (Streamlit)
+
+Run the Streamlit web app for a browser-based experience:
+
+```bash
+make run-streamlit
+```
+
+### Desktop Application (PyQt5)
+
+Run the PyQt5 desktop app for a native desktop experience:
+
+```bash
+make run-desktop
+```
+
+#### Desktop App Features
+
+- **Onboarding Screen**: Welcome screen with app information and quick start
+- **Image Viewer**: Zoom and pan capabilities with cursor position tracking
+- **Workflow Drawer**: Side panel for AI workflow generation and visualization
+- **Settings Dialog**: API key management and configuration
+- **Menu Bar**: File operations, workflow controls, and settings access
+- **Status Bar**: Image information and cursor position display
+
+## Desktop App Installation
+
+### macOS
+```bash
+make install-pyqt5-macos
+```
+
+### Ubuntu/Debian
+```bash
+make install-pyqt5-ubuntu
+```
+
+### Windows
+```bash
+make install-pyqt5-windows
+```
+
+## Available Commands
+
+```bash
+make install              # Install all dependencies
+make run-streamlit        # Run Streamlit web app
+make run-desktop          # Run PyQt5 desktop app
+make clean                # Clean up Python cache files
+make test                 # Run tests
+make help                 # Show all available commands
+```
 
 ## Project Structure
 
 ```
 ezit/
-├── main.py                 # Streamlit frontend
-├── workflow_processor.py   # Core workflow engine
-├── node_spec.txt          # Node specifications
+├── desktop/                 # Desktop application module
+│   ├── __init__.py
+│   ├── theme.py            # Dark theme configuration
+│   ├── widgets.py          # Custom PyQt5 widgets
+│   └── main_window.py      # Main window implementation
+├── desktop_app.py          # Desktop app entry point
+├── main.py                 # Streamlit web app
+├── workflow_processor.py   # AI workflow processing engine
+├── node_spec.txt          # Available processing nodes
 ├── requirements.txt       # Python dependencies
 ├── Makefile              # Build and run commands
-├── setup.sh              # Setup script
 └── README.md             # This file
 ```
 
-## Troubleshooting
+## Processing Nodes
 
-### Common Issues
+The application supports 21+ image processing operations including:
 
-1. **"No module named 'cv2'"**
-   ```bash
-   pip install opencv-python
-   ```
+- **Basic Operations**: Grayscale conversion, blur, sharpen, resize
+- **Color Processing**: Brightness, contrast, saturation, hue adjustment
+- **Edge Detection**: Canny, Sobel, Laplacian edge detection
+- **Morphological Operations**: Erosion, dilation, opening, closing
+- **Thresholding**: Binary, adaptive, Otsu thresholding
+- **Text Overlay**: Add text with custom fonts and colors
+- **Drawing**: Lines, rectangles, circles, polygons
+- **Filters**: Gaussian, median, bilateral filtering
 
-2. **OpenAI API Key Error**
-   ```bash
-   export OPENAI_API_KEY=your_actual_key_here
-   ```
+## Examples
 
-3. **Permission Denied on setup.sh**
-   ```bash
-   chmod +x setup.sh
-   ```
+### Natural Language Prompts
 
-4. **Virtual Environment Issues**
-   ```bash
-   make clean
-   make setup
-   ```
+- "Convert to grayscale and blur the image"
+- "Add text 'Hello World' in white at the center"
+- "Detect edges and apply threshold"
+- "Increase brightness by 50% and contrast by 30%"
+- "Apply Gaussian blur with radius 5 and add a red border"
 
-### Debug Mode
+### Workflow Generation
 
-The application includes debug output to help troubleshoot issues:
+The AI analyzes your prompt and generates a JSON workflow that defines:
+- Processing nodes and their parameters
+- Node connections and execution order
+- Input/output specifications
 
-- Node specification loading
-- Workflow JSON generation
-- Node execution tracking
+## Configuration
 
-## Contributing
+### Environment Variables
+
+- `OPENAI_API_KEY`: Your OpenAI API key for workflow generation
+
+### Settings
+
+The desktop app includes a settings dialog for:
+- API key management
+- Loading keys from environment variables
+- Loading keys from `.env` files
+
+## Development
+
+### Running Tests
+```bash
+make test
+```
+
+### Code Style
+The project follows PEP 8 guidelines and uses type hints.
+
+### Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Run tests: `make test`
-5. Format code: `make format`
-6. Submit a pull request
+4. Add tests if applicable
+5. Submit a pull request
 
 ## License
 
-This project is open source and available under the MIT License.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-## Support
+## Acknowledgments
 
-If you encounter any issues, please check the debug output and ensure all dependencies are properly installed. 
+- OpenCV for image processing capabilities
+- OpenAI for AI-powered workflow generation
+- PyQt5 for the desktop application framework
+- Streamlit for the web application framework 

@@ -1,112 +1,52 @@
-# Makefile for AI Image Workflow Processor
+# AI Image Workflow Processor Makefile
 
-.PHONY: help setup install run clean test
+.PHONY: install run-streamlit run-desktop clean test
 
-# Default target
-help:
-	@echo "Available targets:"
-	@echo "  setup    - Create virtual environment and install dependencies"
-	@echo "  install  - Install dependencies in existing environment"
-	@echo "  run      - Run the Streamlit application"
-	@echo "  clean    - Remove virtual environment and cache files"
-	@echo "  test     - Run basic tests"
-
-# Create virtual environment and install dependencies
-setup:
-	@echo "Creating virtual environment..."
-	python3 -m venv .venv
-	@echo "Activating virtual environment..."
-	@echo "To activate manually: source .venv/bin/activate"
-	@echo "Installing dependencies..."
-	.venv/bin/pip install --upgrade pip
-	.venv/bin/pip install -r requirements.txt
-	@echo "Setup complete! Activate with: source .venv/bin/activate"
-
-# Install dependencies in existing environment
+# Install dependencies
 install:
-	@echo "Installing dependencies..."
-	pip install --upgrade pip
 	pip install -r requirements.txt
-	@echo "Dependencies installed!"
-	@echo "Note: If you want interactive workflow visualization, install streamlit-agraph:"
-	@echo "pip install streamlit-agraph"
 
-# Run the Streamlit application
-run:
-	@echo "Starting Streamlit application..."
-	@echo "Make sure to set your OPENAI_API_KEY environment variable"
-	@echo "You can set it with: export OPENAI_API_KEY=your_key_here"
+# Run Streamlit web app
+run-streamlit:
 	streamlit run main.py
 
-# Run with virtual environment
-run-venv:
-	@echo "Starting Streamlit application with virtual environment..."
-	.venv/bin/streamlit run main.py
-
-# Run desktop application
+# Run PyQt5 desktop app
 run-desktop:
-	@echo "Starting PyQt desktop application..."
-	@echo "Make sure to set your OPENAI_API_KEY environment variable"
-	@echo "You can set it with: export OPENAI_API_KEY=your_key_here"
-	python desktop_app.py
+	python3 desktop_app.py
 
-# Run desktop application with virtual environment
-run-desktop-venv:
-	@echo "Starting PyQt desktop application with virtual environment..."
-	.venv/bin/python desktop_app.py
-
-# Clean up virtual environment and cache files
+# Clean up
 clean:
-	@echo "Cleaning up..."
-	rm -rf .venv
-	rm -rf __pycache__
-	rm -rf .streamlit
-	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
-	find . -type f -name "*.pyc" -delete 2>/dev/null || true
-	@echo "Cleanup complete!"
+	find . -type f -name "*.pyc" -delete
+	find . -type d -name "__pycache__" -delete
 
-# Run basic tests
+# Run tests
 test:
-	@echo "Running basic tests..."
-	python -c "import cv2; print('OpenCV version:', cv2.__version__)"
-	python -c "import numpy as np; print('NumPy version:', np.__version__)"
-	python -c "import streamlit as st; print('Streamlit version:', st.__version__)"
-	python -c "import openai; print('OpenAI version:', openai.__version__)"
-	@echo "All imports successful!"
+	python -m pytest tests/ -v
 
-# Check if virtual environment exists
-check-env:
-	@if [ -d ".venv" ]; then \
-		echo "Virtual environment exists. Activate with: source .venv/bin/activate"; \
-	else \
-		echo "Virtual environment not found. Run 'make setup' to create one."; \
-	fi
+# Install PyQt5 dependencies (macOS)
+install-pyqt5-macos:
+	brew install pyqt@5
+	pip install PyQt5
 
-# Install development dependencies
-install-dev:
-	@echo "Installing development dependencies..."
-	pip install -r requirements.txt
-	pip install streamlit-agraph
-	pip install black flake8 mypy pytest
-	@echo "Development dependencies installed!"
+# Install PyQt5 dependencies (Ubuntu/Debian)
+install-pyqt5-ubuntu:
+	sudo apt-get update
+	sudo apt-get install python3-pyqt5 python3-pyqt5.qtcore python3-pyqt5.qtgui python3-pyqt5.qtwidgets
+	pip install PyQt5
 
-# Format code
-format:
-	@echo "Formatting code with black..."
-	black *.py
+# Install PyQt5 dependencies (Windows)
+install-pyqt5-windows:
+	pip install PyQt5
 
-# Lint code
-lint:
-	@echo "Linting code with flake8..."
-	flake8 *.py
-
-# Type check
-type-check:
-	@echo "Running type checks with mypy..."
-	mypy *.py --ignore-missing-imports
-
-# Install desktop dependencies
-install-desktop:
-	@echo "Installing desktop application dependencies..."
-	pip install PyQt6 PyQt6-Qt6 PyQt6-sip qt-material
-	@echo "Desktop dependencies installed!" 
+# Show help
+help:
+	@echo "Available commands:"
+	@echo "  install              - Install all dependencies"
+	@echo "  run-streamlit        - Run Streamlit web app"
+	@echo "  run-desktop          - Run PyQt5 desktop app"
+	@echo "  clean                - Clean up Python cache files"
+	@echo "  test                 - Run tests"
+	@echo "  install-pyqt5-macos  - Install PyQt5 on macOS"
+	@echo "  install-pyqt5-ubuntu - Install PyQt5 on Ubuntu/Debian"
+	@echo "  install-pyqt5-windows- Install PyQt5 on Windows"
+	@echo "  help                 - Show this help message" 

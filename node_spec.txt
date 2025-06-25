@@ -1,242 +1,1058 @@
-# Image Processing Workflow Node Specifications
+# AI Image Workflow Processor - Node Specifications
+# This file defines all available image processing nodes and their parameters
 
-## Node Types and Their Specifications
-
-### 1. Input Node
+### 1. **input**
 - **name**: "input"
-- **description**: "Receives the input image from the workflow"
+- **description**: "Input image node - serves as the starting point for the workflow"
 - **parameters**: {}
 - **inputs**: []
 - **outputs**: ["image"]
 - **operator**: "input"
 
-### 2. Output Node
+### 2. **output**
 - **name**: "output"
-- **description**: "Outputs the final processed image"
+- **description**: "Output image node - serves as the final result of the workflow"
 - **parameters**: {}
 - **inputs**: ["image"]
 - **outputs**: []
 - **operator**: "output"
 
-### 3. Gaussian Blur Node
+### 3. **gaussian_blur**
 - **name**: "gaussian_blur"
-- **description**: "Applies Gaussian blur to reduce noise and smooth the image"
-- **parameters**: {
-    "kernel_size": {"type": "tuple", "default": [5, 5], "description": "Kernel size for blur (width, height)"},
-    "sigma_x": {"type": "float", "default": 0.0, "description": "Standard deviation in X direction"},
-    "sigma_y": {"type": "float", "default": 0.0, "description": "Standard deviation in Y direction"}
-  }
+- **description**: "Apply Gaussian blur filter to smooth the image"
+- **parameters**: {"kernel_size": {"type": "tuple", "default": [5, 5], "description": "Kernel size for blur (width, height)"}, "sigma_x": {"type": "float", "default": 0.0, "description": "Standard deviation in X direction"}, "sigma_y": {"type": "float", "default": 0.0, "description": "Standard deviation in Y direction"}}
 - **inputs**: ["image"]
 - **outputs**: ["image"]
 - **operator**: "gaussian_blur"
 
-### 4. Median Blur Node
+### 4. **median_blur**
 - **name**: "median_blur"
-- **description**: "Applies median blur to remove salt-and-pepper noise"
-- **parameters**: {
-    "kernel_size": {"type": "int", "default": 5, "description": "Kernel size (must be odd number)"}
-  }
+- **description**: "Apply median blur filter to reduce noise while preserving edges"
+- **parameters**: {"kernel_size": {"type": "int", "default": 5, "description": "Kernel size for median blur (must be odd)"}}
 - **inputs**: ["image"]
 - **outputs**: ["image"]
 - **operator**: "median_blur"
 
-### 5. Bilateral Filter Node
+### 5. **bilateral_filter**
 - **name**: "bilateral_filter"
-- **description**: "Applies bilateral filter to preserve edges while smoothing"
-- **parameters**: {
-    "d": {"type": "int", "default": 15, "description": "Diameter of pixel neighborhood"},
-    "sigma_color": {"type": "float", "default": 75.0, "description": "Filter sigma in color space"},
-    "sigma_space": {"type": "float", "default": 75.0, "description": "Filter sigma in coordinate space"}
-  }
+- **description**: "Apply bilateral filter for edge-preserving smoothing"
+- **parameters**: {"d": {"type": "int", "default": 15, "description": "Diameter of pixel neighborhood"}, "sigma_color": {"type": "float", "default": 75.0, "description": "Filter sigma in color space"}, "sigma_space": {"type": "float", "default": 75.0, "description": "Filter sigma in coordinate space"}}
 - **inputs**: ["image"]
 - **outputs**: ["image"]
 - **operator**: "bilateral_filter"
 
-### 6. RGB to Gray Node
+### 6. **rgb2gray**
 - **name**: "rgb2gray"
-- **description**: "Converts RGB image to grayscale"
+- **description**: "Convert RGB/BGR image to grayscale"
 - **parameters**: {}
 - **inputs**: ["image"]
 - **outputs**: ["image"]
 - **operator**: "rgb2gray"
 
-### 7. Gray to RGB Node
+### 7. **gray2rgb**
 - **name**: "gray2rgb"
-- **description**: "Converts grayscale image to RGB"
+- **description**: "Convert grayscale image to RGB/BGR"
 - **parameters**: {}
 - **inputs**: ["image"]
 - **outputs**: ["image"]
 - **operator**: "gray2rgb"
 
-### 8. Canny Edge Detection Node
+### 8. **canny_edge**
 - **name**: "canny_edge"
-- **description**: "Detects edges using Canny algorithm"
-- **parameters**: {
-    "threshold1": {"type": "float", "default": 100.0, "description": "First threshold for edge detection"},
-    "threshold2": {"type": "float", "default": 200.0, "description": "Second threshold for edge detection"},
-    "aperture_size": {"type": "int", "default": 3, "description": "Aperture size for Sobel operator"}
-  }
+- **description**: "Detect edges using Canny algorithm"
+- **parameters**: {"threshold1": {"type": "float", "default": 100.0, "description": "First threshold for edge detection"}, "threshold2": {"type": "float", "default": 200.0, "description": "Second threshold for edge detection"}, "aperture_size": {"type": "int", "default": 3, "description": "Aperture size for Sobel operator"}}
 - **inputs**: ["image"]
 - **outputs**: ["image"]
 - **operator**: "canny_edge"
 
-### 9. Sobel Edge Detection Node
+### 9. **sobel_edge**
 - **name**: "sobel_edge"
-- **description**: "Detects edges using Sobel operator"
-- **parameters**: {
-    "dx": {"type": "int", "default": 1, "description": "Order of derivative x"},
-    "dy": {"type": "int", "default": 1, "description": "Order of derivative y"},
-    "ksize": {"type": "int", "default": 3, "description": "Size of Sobel kernel"},
-    "scale": {"type": "float", "default": 1.0, "description": "Scale factor"},
-    "delta": {"type": "float", "default": 0.0, "description": "Delta added to scaled values"}
-  }
+- **description**: "Detect edges using Sobel operator"
+- **parameters**: {"dx": {"type": "int", "default": 1, "description": "Order of derivative x"}, "dy": {"type": "int", "default": 1, "description": "Order of derivative y"}, "ksize": {"type": "int", "default": 3, "description": "Kernel size"}, "scale": {"type": "float", "default": 1.0, "description": "Scale factor"}, "delta": {"type": "float", "default": 0.0, "description": "Delta added to the scaled result"}}
 - **inputs**: ["image"]
 - **outputs**: ["image"]
 - **operator**: "sobel_edge"
 
-### 10. Threshold Node
+### 10. **threshold**
 - **name**: "threshold"
-- **description**: "Applies binary threshold to the image"
-- **parameters**: {
-    "thresh": {"type": "float", "default": 127.0, "description": "Threshold value"},
-    "maxval": {"type": "float", "default": 255.0, "description": "Maximum value for threshold"},
-    "type": {"type": "string", "default": "THRESH_BINARY", "description": "Threshold type"}
-  }
+- **description**: "Apply binary threshold to create black and white image"
+- **parameters**: {"thresh": {"type": "float", "default": 127.0, "description": "Threshold value"}, "maxval": {"type": "float", "default": 255.0, "description": "Maximum value for threshold"}, "type": {"type": "string", "default": "THRESH_BINARY", "description": "Threshold type (THRESH_BINARY, THRESH_BINARY_INV, THRESH_TRUNC, THRESH_TOZERO, THRESH_TOZERO_INV)"}}
 - **inputs**: ["image"]
 - **outputs**: ["image"]
 - **operator**: "threshold"
 
-### 11. Adaptive Threshold Node
+### 11. **adaptive_threshold**
 - **name**: "adaptive_threshold"
-- **description**: "Applies adaptive threshold to the image"
-- **parameters**: {
-    "max_value": {"type": "float", "default": 255.0, "description": "Maximum value for threshold"},
-    "adaptive_method": {"type": "string", "default": "ADAPTIVE_THRESH_GAUSSIAN_C", "description": "Adaptive method"},
-    "threshold_type": {"type": "string", "default": "THRESH_BINARY", "description": "Threshold type"},
-    "block_size": {"type": "int", "default": 11, "description": "Block size for adaptive threshold"},
-    "c": {"type": "float", "default": 2.0, "description": "Constant subtracted from mean"}
-  }
+- **description**: "Apply adaptive threshold for varying lighting conditions"
+- **parameters**: {"max_value": {"type": "float", "default": 255.0, "description": "Maximum value"}, "adaptive_method": {"type": "string", "default": "ADAPTIVE_THRESH_GAUSSIAN_C", "description": "Adaptive method"}, "threshold_type": {"type": "string", "default": "THRESH_BINARY", "description": "Threshold type"}, "block_size": {"type": "int", "default": 11, "description": "Block size"}, "c": {"type": "float", "default": 2.0, "description": "Constant subtracted from mean"}}
 - **inputs**: ["image"]
 - **outputs**: ["image"]
 - **operator**: "adaptive_threshold"
 
-### 12. Morphological Operations Node
+### 12. **morphology**
 - **name**: "morphology"
-- **description**: "Applies morphological operations (erosion, dilation, opening, closing)"
-- **parameters**: {
-    "operation": {"type": "string", "default": "MORPH_OPEN", "description": "Morphological operation type"},
-    "kernel_size": {"type": "int", "default": 3, "description": "Size of morphological kernel"},
-    "iterations": {"type": "int", "default": 1, "description": "Number of iterations"}
-  }
+- **description**: "Apply morphological operations (erosion, dilation, opening, closing)"
+- **parameters**: {"operation": {"type": "string", "default": "MORPH_OPEN", "description": "Morphological operation type"}, "kernel_size": {"type": "int", "default": 3, "description": "Kernel size"}, "iterations": {"type": "int", "default": 1, "description": "Number of iterations"}}
 - **inputs**: ["image"]
 - **outputs**: ["image"]
 - **operator**: "morphology"
 
-### 13. Histogram Equalization Node
+### 13. **histogram_equalization**
 - **name**: "histogram_equalization"
-- **description**: "Enhances image contrast using histogram equalization"
+- **description**: "Enhance image contrast using histogram equalization"
 - **parameters**: {}
 - **inputs**: ["image"]
 - **outputs**: ["image"]
 - **operator**: "histogram_equalization"
 
-### 14. CLAHE Node
+### 14. **clahe**
 - **name**: "clahe"
-- **description**: "Applies Contrast Limited Adaptive Histogram Equalization"
-- **parameters**: {
-    "clip_limit": {"type": "float", "default": 2.0, "description": "Clip limit for CLAHE"},
-    "tile_grid_size": {"type": "tuple", "default": [8, 8], "description": "Grid size for CLAHE"}
-  }
+- **description**: "Apply Contrast Limited Adaptive Histogram Equalization"
+- **parameters**: {"clip_limit": {"type": "float", "default": 2.0, "description": "Clip limit for contrast limiting"}, "tile_grid_size": {"type": "tuple", "default": [8, 8], "description": "Grid size for histogram equalization"}}
 - **inputs**: ["image"]
 - **outputs**: ["image"]
 - **operator**: "clahe"
 
-### 15. Color Space Conversion Node
+### 15. **color_space_convert**
 - **name**: "color_space_convert"
-- **description**: "Converts image between different color spaces"
-- **parameters**: {
-    "code": {"type": "string", "default": "COLOR_BGR2HSV", "description": "Color conversion code"}
-  }
+- **description**: "Convert between different color spaces"
+- **parameters**: {"code": {"type": "string", "default": "COLOR_BGR2HSV", "description": "Color conversion code"}}
 - **inputs**: ["image"]
 - **outputs**: ["image"]
 - **operator**: "color_space_convert"
 
-### 16. Resize Node
+### 16. **resize**
 - **name**: "resize"
-- **description**: "Resizes the image to specified dimensions"
-- **parameters**: {
-    "width": {"type": "int", "default": 640, "description": "Target width"},
-    "height": {"type": "int", "default": 480, "description": "Target height"},
-    "interpolation": {"type": "string", "default": "INTER_LINEAR", "description": "Interpolation method"}
-  }
+- **description**: "Resize image to specified dimensions"
+- **parameters**: {"width": {"type": "int", "default": 640, "description": "Target width"}, "height": {"type": "int", "default": 480, "description": "Target height"}, "interpolation": {"type": "string", "default": "INTER_LINEAR", "description": "Interpolation method"}}
 - **inputs**: ["image"]
 - **outputs**: ["image"]
 - **operator**: "resize"
 
-### 17. Crop Node
+### 17. **crop**
 - **name**: "crop"
-- **description**: "Crops the image to specified region"
-- **parameters**: {
-    "x": {"type": "int", "default": 0, "description": "Starting x coordinate"},
-    "y": {"type": "int", "default": 0, "description": "Starting y coordinate"},
-    "width": {"type": "int", "default": 100, "description": "Crop width"},
-    "height": {"type": "int", "default": 100, "description": "Crop height"}
-  }
+- **description**: "Crop image to specified region"
+- **parameters**: {"x": {"type": "int", "default": 0, "description": "Starting X coordinate"}, "y": {"type": "int", "default": 0, "description": "Starting Y coordinate"}, "width": {"type": "int", "default": 100, "description": "Crop width"}, "height": {"type": "int", "default": 100, "description": "Crop height"}}
 - **inputs**: ["image"]
 - **outputs**: ["image"]
 - **operator**: "crop"
 
-### 18. Brightness and Contrast Node
+### 18. **brightness_contrast**
 - **name**: "brightness_contrast"
-- **description**: "Adjusts brightness and contrast of the image"
-- **parameters**: {
-    "alpha": {"type": "float", "default": 1.0, "description": "Contrast control (1.0-3.0)"},
-    "beta": {"type": "float", "default": 0.0, "description": "Brightness control (-100 to 100)"}
-  }
+- **description**: "Adjust brightness and contrast of the image"
+- **parameters**: {"alpha": {"type": "float", "default": 1.0, "description": "Contrast factor (1.0 = no change)"}, "beta": {"type": "float", "default": 0.0, "description": "Brightness offset (0 = no change)"}}
 - **inputs**: ["image"]
 - **outputs**: ["image"]
 - **operator**: "brightness_contrast"
 
-### 19. Gamma Correction Node
+### 19. **gamma_correction**
 - **name**: "gamma_correction"
-- **description**: "Applies gamma correction to the image"
-- **parameters**: {
-    "gamma": {"type": "float", "default": 1.0, "description": "Gamma value (0.1-3.0)"}
-  }
+- **description**: "Apply gamma correction for brightness adjustment"
+- **parameters**: {"gamma": {"type": "float", "default": 1.0, "description": "Gamma value (1.0 = no change)"}}
 - **inputs**: ["image"]
 - **outputs**: ["image"]
 - **operator**: "gamma_correction"
 
-### 20. Noise Addition Node
+### 20. **add_noise**
 - **name**: "add_noise"
-- **description**: "Adds Gaussian noise to the image"
-- **parameters**: {
-    "mean": {"type": "float", "default": 0.0, "description": "Mean of Gaussian noise"},
-    "std": {"type": "float", "default": 25.0, "description": "Standard deviation of Gaussian noise"}
-  }
+- **description**: "Add Gaussian noise to the image"
+- **parameters**: {"mean": {"type": "float", "default": 0.0, "description": "Mean of Gaussian noise"}, "std": {"type": "float", "default": 25.0, "description": "Standard deviation of Gaussian noise"}}
 - **inputs**: ["image"]
 - **outputs**: ["image"]
 - **operator**: "add_noise"
 
-### 21. Add Text Node
+### 21. **add_text**
 - **name**: "add_text"
-- **description**: "Adds text overlay to the image"
-- **parameters**: {
-    "text": {"type": "string", "default": "Hello World", "description": "Text to add to the image"},
-    "x": {"type": "int", "default": 10, "description": "X coordinate for text position"},
-    "y": {"type": "int", "default": 30, "description": "Y coordinate for text position"},
-    "font_scale": {"type": "float", "default": 1.0, "description": "Font scale factor"},
-    "color": {"type": "tuple", "default": [255, 255, 255], "description": "Text color (B, G, R)"},
-    "thickness": {"type": "int", "default": 2, "description": "Text thickness"},
-    "font": {"type": "string", "default": "FONT_HERSHEY_SIMPLEX", "description": "Font type"}
-  }
+- **description**: "Add text overlay to the image"
+- **parameters**: {"text": {"type": "string", "default": "Hello World", "description": "Text to add"}, "x": {"type": "int", "default": 10, "description": "X coordinate for text position"}, "y": {"type": "int", "default": 30, "description": "Y coordinate for text position"}, "font_scale": {"type": "float", "default": 1.0, "description": "Font scale factor"}, "color": {"type": "array", "default": [255, 255, 255], "description": "Text color in BGR format"}, "thickness": {"type": "int", "default": 2, "description": "Text thickness"}, "font": {"type": "string", "default": "FONT_HERSHEY_SIMPLEX", "description": "Font type"}}
 - **inputs**: ["image"]
 - **outputs**: ["image"]
 - **operator**: "add_text"
 
-## Workflow Connection Rules:
-- Each node can have multiple inputs and outputs
-- Input nodes can only be connected to processing nodes
-- Output nodes can only receive connections from processing nodes
-- Processing nodes can connect to other processing nodes or output nodes
-- All connections must match input/output types (image to image) 
+### 22. **unsharp_mask**
+- **name**: "unsharp_mask"
+- **description**: "Apply unsharp mask filter to enhance image sharpness"
+- **parameters**: {"kernel_size": {"type": "tuple", "default": [5, 5], "description": "Kernel size for Gaussian blur"}, "sigma": {"type": "float", "default": 1.0, "description": "Standard deviation for Gaussian blur"}, "amount": {"type": "float", "default": 1.0, "description": "Amount of sharpening"}, "threshold": {"type": "float", "default": 0.0, "description": "Threshold for sharpening"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "unsharp_mask"
+
+### 23. **laplacian_sharpen**
+- **name**: "laplacian_sharpen"
+- **description**: "Sharpen image using Laplacian operator"
+- **parameters**: {"ksize": {"type": "int", "default": 3, "description": "Kernel size for Laplacian"}, "scale": {"type": "float", "default": 1.0, "description": "Scale factor for sharpening"}, "delta": {"type": "float", "default": 0.0, "description": "Delta value"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "laplacian_sharpen"
+
+### 24. **emboss**
+- **name**: "emboss"
+- **description**: "Apply emboss effect to create 3D-like appearance"
+- **parameters**: {"kernel_size": {"type": "int", "default": 3, "description": "Kernel size for emboss effect"}, "strength": {"type": "float", "default": 1.0, "description": "Strength of emboss effect"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "emboss"
+
+### 25. **sepia**
+- **name**: "sepia"
+- **description**: "Apply sepia tone effect to create vintage appearance"
+- **parameters**: {"intensity": {"type": "float", "default": 0.8, "description": "Intensity of sepia effect (0.0 to 1.0)"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "sepia"
+
+### 26. **vintage**
+- **name**: "vintage"
+- **description**: "Apply vintage film effect with color grading"
+- **parameters**: {"warmth": {"type": "float", "default": 0.1, "description": "Warmth adjustment (-1.0 to 1.0)"}, "saturation": {"type": "float", "default": 0.8, "description": "Saturation adjustment (0.0 to 2.0)"}, "contrast": {"type": "float", "default": 1.2, "description": "Contrast adjustment (0.5 to 2.0)"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "vintage"
+
+### 27. **cartoon**
+- **name**: "cartoon"
+- **description**: "Apply cartoon effect with edge detection and color quantization"
+- **parameters**: {"edge_strength": {"type": "float", "default": 0.5, "description": "Strength of edge detection"}, "color_levels": {"type": "int", "default": 8, "description": "Number of color levels for quantization"}, "blur_strength": {"type": "int", "default": 7, "description": "Bilateral filter strength"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "cartoon"
+
+### 28. **oil_painting**
+- **name**: "oil_painting"
+- **description**: "Apply oil painting effect using bilateral filter and color quantization"
+- **parameters**: {"radius": {"type": "int", "default": 4, "description": "Radius for oil painting effect"}, "intensity": {"type": "int", "default": 30, "description": "Intensity of the effect"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "oil_painting"
+
+### 29. **watercolor**
+- **name**: "watercolor"
+- **description**: "Apply watercolor painting effect"
+- **parameters**: {"blur_radius": {"type": "int", "default": 5, "description": "Blur radius for watercolor effect"}, "edge_strength": {"type": "float", "default": 0.3, "description": "Edge preservation strength"}, "saturation": {"type": "float", "default": 1.2, "description": "Saturation boost"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "watercolor"
+
+### 30. **sketch**
+- **name**: "sketch"
+- **description**: "Convert image to pencil sketch effect"
+- **parameters**: {"blur_strength": {"type": "int", "default": 5, "description": "Blur strength for sketch effect"}, "edge_threshold": {"type": "float", "default": 50.0, "description": "Edge detection threshold"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "sketch"
+
+### 31. **invert**
+- **name**: "invert"
+- **description**: "Invert the colors of the image"
+- **parameters**: {}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "invert"
+
+### 32. **solarize**
+- **name**: "solarize"
+- **description**: "Apply solarization effect (partial color inversion)"
+- **parameters**: {"threshold": {"type": "int", "default": 128, "description": "Threshold for solarization effect"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "solarize"
+
+### 33. **posterize**
+- **name**: "posterize"
+- **description**: "Reduce number of colors to create poster-like effect"
+- **parameters**: {"levels": {"type": "int", "default": 4, "description": "Number of color levels (2-8)"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "posterize"
+
+### 34. **color_balance**
+- **name**: "color_balance"
+- **description**: "Adjust color balance for shadows, midtones, and highlights"
+- **parameters**: {"shadows": {"type": "array", "default": [1.0, 1.0, 1.0], "description": "Color balance for shadows [B, G, R]"}, "midtones": {"type": "array", "default": [1.0, 1.0, 1.0], "description": "Color balance for midtones [B, G, R]"}, "highlights": {"type": "array", "default": [1.0, 1.0, 1.0], "description": "Color balance for highlights [B, G, R]"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "color_balance"
+
+### 35. **color_temperature**
+- **name**: "color_temperature"
+- **description**: "Adjust color temperature (warm/cool tones)"
+- **parameters**: {"temperature": {"type": "float", "default": 0.0, "description": "Temperature adjustment (-100 to 100, negative=cool, positive=warm)"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "color_temperature"
+
+### 36. **tint**
+- **name**: "tint"
+- **description**: "Apply color tint to the image"
+- **parameters**: {"tint_color": {"type": "array", "default": [255, 200, 150], "description": "Tint color in BGR format"}, "strength": {"type": "float", "default": 0.3, "description": "Strength of tint effect (0.0 to 1.0)"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "tint"
+
+### 37. **duotone**
+- **name**: "duotone"
+- **description**: "Apply duotone effect with two colors"
+- **parameters**: {"color1": {"type": "array", "default": [0, 0, 255], "description": "First color in BGR format"}, "color2": {"type": "array", "default": [255, 255, 255], "description": "Second color in BGR format"}, "blend": {"type": "float", "default": 0.5, "description": "Blend ratio between colors"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "duotone"
+
+### 38. **gradient_map**
+- **name**: "gradient_map"
+- **description**: "Apply gradient mapping to replace colors with gradient"
+- **parameters**: {"gradient_colors": {"type": "array", "default": [[0, 0, 0], [255, 255, 255]], "description": "Array of gradient colors in BGR format"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "gradient_map"
+
+### 39. **lens_blur**
+- **name**: "lens_blur"
+- **description**: "Apply lens blur effect with depth of field simulation"
+- **parameters**: {"radius": {"type": "int", "default": 10, "description": "Blur radius"}, "center_x": {"type": "float", "default": 0.5, "description": "Center X position (0.0 to 1.0)"}, "center_y": {"type": "float", "default": 0.5, "description": "Center Y position (0.0 to 1.0)"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "lens_blur"
+
+### 40. **motion_blur**
+- **name**: "motion_blur"
+- **description**: "Apply motion blur effect to simulate camera movement"
+- **parameters**: {"angle": {"type": "float", "default": 0.0, "description": "Motion angle in degrees"}, "strength": {"type": "int", "default": 15, "description": "Blur strength"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "motion_blur"
+
+### 41. **radial_blur**
+- **name**: "radial_blur"
+- **description**: "Apply radial blur effect from center point"
+- **parameters**: {"center_x": {"type": "float", "default": 0.5, "description": "Center X position (0.0 to 1.0)"}, "center_y": {"type": "float", "default": 0.5, "description": "Center Y position (0.0 to 1.0)"}, "strength": {"type": "float", "default": 0.1, "description": "Blur strength"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "radial_blur"
+
+### 42. **perspective_transform**
+- **name**: "perspective_transform"
+- **description**: "Apply perspective transformation to change viewing angle"
+- **parameters**: {"src_points": {"type": "array", "default": [[0, 0], [640, 0], [640, 480], [0, 480]], "description": "Source points for transformation"}, "dst_points": {"type": "array", "default": [[50, 50], [590, 30], [590, 450], [50, 430]], "description": "Destination points for transformation"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "perspective_transform"
+
+### 43. **affine_transform**
+- **name**: "affine_transform"
+- **description**: "Apply affine transformation (rotation, scaling, translation)"
+- **parameters**: {"angle": {"type": "float", "default": 0.0, "description": "Rotation angle in degrees"}, "scale": {"type": "float", "default": 1.0, "description": "Scale factor"}, "tx": {"type": "float", "default": 0.0, "description": "Translation in X direction"}, "ty": {"type": "float", "default": 0.0, "description": "Translation in Y direction"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "affine_transform"
+
+### 44. **mirror**
+- **name**: "mirror"
+- **description**: "Mirror/flip the image horizontally or vertically"
+- **parameters**: {"direction": {"type": "string", "default": "horizontal", "description": "Mirror direction (horizontal, vertical, both)"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "mirror"
+
+### 45. **rotate**
+- **name**: "rotate"
+- **description**: "Rotate image by specified angle"
+- **parameters**: {"angle": {"type": "float", "default": 90.0, "description": "Rotation angle in degrees"}, "center_x": {"type": "float", "default": -1, "description": "Center X coordinate (-1 for image center)"}, "center_y": {"type": "float", "default": -1, "description": "Center Y coordinate (-1 for image center)"}, "scale": {"type": "float", "default": 1.0, "description": "Scale factor during rotation"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "rotate"
+
+### 46. **tilt_shift**
+- **name**: "tilt_shift"
+- **description**: "Apply tilt-shift effect to simulate miniature photography"
+- **parameters**: {"focus_center": {"type": "float", "default": 0.5, "description": "Focus center position (0.0 to 1.0)"}, "focus_width": {"type": "float", "default": 0.2, "description": "Focus area width (0.0 to 1.0)"}, "blur_strength": {"type": "int", "default": 15, "description": "Blur strength outside focus area"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "tilt_shift"
+
+### 47. **fisheye**
+- **name**: "fisheye"
+- **description**: "Apply fisheye lens distortion effect"
+- **parameters**: {"strength": {"type": "float", "default": 0.3, "description": "Distortion strength (0.0 to 1.0)"}, "center_x": {"type": "float", "default": 0.5, "description": "Center X position (0.0 to 1.0)"}, "center_y": {"type": "float", "default": 0.5, "description": "Center Y position (0.0 to 1.0)"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "fisheye"
+
+### 48. **barrel_distortion**
+- **name**: "barrel_distortion"
+- **description**: "Apply barrel distortion effect"
+- **parameters**: {"k1": {"type": "float", "default": 0.1, "description": "First distortion coefficient"}, "k2": {"type": "float", "default": 0.05, "description": "Second distortion coefficient"}, "k3": {"type": "float", "default": 0.0, "description": "Third distortion coefficient"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "barrel_distortion"
+
+### 49. **pincushion_distortion**
+- **name**: "pincushion_distortion"
+- **description**: "Apply pincushion distortion effect"
+- **parameters**: {"k1": {"type": "float", "default": -0.1, "description": "First distortion coefficient"}, "k2": {"type": "float", "default": -0.05, "description": "Second distortion coefficient"}, "k3": {"type": "float", "default": 0.0, "description": "Third distortion coefficient"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "pincushion_distortion"
+
+### 50. **wave_distortion**
+- **name**: "wave_distortion"
+- **description**: "Apply wave-like distortion effect"
+- **parameters**: {"amplitude": {"type": "float", "default": 10.0, "description": "Wave amplitude"}, "frequency": {"type": "float", "default": 0.1, "description": "Wave frequency"}, "phase": {"type": "float", "default": 0.0, "description": "Wave phase"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "wave_distortion"
+
+### 51. **ripple_effect**
+- **name**: "ripple_effect"
+- **description**: "Apply ripple effect like water surface"
+- **parameters**: {"center_x": {"type": "float", "default": 0.5, "description": "Ripple center X (0.0 to 1.0)"}, "center_y": {"type": "float", "default": 0.5, "description": "Ripple center Y (0.0 to 1.0)"}, "amplitude": {"type": "float", "default": 20.0, "description": "Ripple amplitude"}, "frequency": {"type": "float", "default": 0.05, "description": "Ripple frequency"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "ripple_effect"
+
+### 52. **pixelate**
+- **name**: "pixelate"
+- **description**: "Create pixelated effect by reducing resolution"
+- **parameters**: {"block_size": {"type": "int", "default": 10, "description": "Size of pixel blocks"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "pixelate"
+
+### 53. **mosaic**
+- **name**: "mosaic"
+- **description**: "Create mosaic effect with colored tiles"
+- **parameters**: {"tile_size": {"type": "int", "default": 20, "description": "Size of mosaic tiles"}, "color_variation": {"type": "float", "default": 0.3, "description": "Color variation between tiles"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "mosaic"
+
+### 54. **halftone**
+- **name**: "halftone"
+- **description**: "Apply halftone printing effect"
+- **parameters**: {"dot_size": {"type": "int", "default": 5, "description": "Size of halftone dots"}, "angle": {"type": "float", "default": 45.0, "description": "Dot pattern angle"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "halftone"
+
+### 55. **crosshatch**
+- **name**: "crosshatch"
+- **description**: "Apply crosshatch drawing effect"
+- **parameters**: {"line_spacing": {"type": "int", "default": 10, "description": "Spacing between lines"}, "line_thickness": {"type": "int", "default": 1, "description": "Thickness of lines"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "crosshatch"
+
+### 56. **stipple**
+- **name**: "stipple"
+- **description**: "Apply stipple drawing effect with dots"
+- **parameters**: {"dot_size": {"type": "int", "default": 2, "description": "Size of stipple dots"}, "dot_spacing": {"type": "int", "default": 5, "description": "Spacing between dots"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "stipple"
+
+### 57. **engrave**
+- **name**: "engrave"
+- **description**: "Apply engraving effect with directional shading"
+- **parameters**: {"angle": {"type": "float", "default": 45.0, "description": "Engraving angle"}, "depth": {"type": "float", "default": 0.5, "description": "Engraving depth"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "engrave"
+
+### 58. **emboss_3d**
+- **name**: "emboss_3d"
+- **description**: "Apply 3D emboss effect with depth"
+- **parameters**: {"depth": {"type": "float", "default": 0.5, "description": "3D depth effect"}, "light_angle": {"type": "float", "default": 45.0, "description": "Light angle in degrees"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "emboss_3d"
+
+### 59. **relief**
+- **name**: "relief"
+- **description**: "Apply relief effect for 3D appearance"
+- **parameters**: {"strength": {"type": "float", "default": 0.5, "description": "Relief strength"}, "angle": {"type": "float", "default": 45.0, "description": "Light angle for relief"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "relief"
+
+### 60. **chrome**
+- **name**: "chrome"
+- **description**: "Apply chrome/metal surface effect"
+- **parameters**: {"reflection_strength": {"type": "float", "default": 0.7, "description": "Reflection strength"}, "metallic_quality": {"type": "float", "default": 0.8, "description": "Metallic appearance quality"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "chrome"
+
+### 61. **glass**
+- **name**: "glass"
+- **description**: "Apply glass/transparent effect"
+- **parameters**: {"transparency": {"type": "float", "default": 0.3, "description": "Transparency level (0.0 to 1.0)"}, "refraction": {"type": "float", "default": 0.1, "description": "Refraction effect strength"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "glass"
+
+### 62. **neon_glow**
+- **name**: "neon_glow"
+- **description**: "Apply neon glow effect around edges"
+- **parameters**: {"glow_color": {"type": "array", "default": [0, 255, 255], "description": "Neon glow color in BGR format"}, "glow_strength": {"type": "float", "default": 0.8, "description": "Glow strength"}, "glow_radius": {"type": "int", "default": 10, "description": "Glow radius"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "neon_glow"
+
+### 63. **fire_effect**
+- **name**: "fire_effect"
+- **description**: "Apply fire/flame effect"
+- **parameters**: {"intensity": {"type": "float", "default": 0.7, "description": "Fire intensity"}, "color_temperature": {"type": "float", "default": 0.8, "description": "Fire color temperature"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "fire_effect"
+
+### 64. **smoke_effect**
+- **name**: "smoke_effect"
+- **description**: "Apply smoke/fog effect"
+- **parameters**: {"density": {"type": "float", "default": 0.5, "description": "Smoke density"}, "opacity": {"type": "float", "default": 0.3, "description": "Smoke opacity"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "smoke_effect"
+
+### 65. **rain_effect**
+- **name**: "rain_effect"
+- **description**: "Apply rain effect with streaks"
+- **parameters**: {"intensity": {"type": "float", "default": 0.6, "description": "Rain intensity"}, "angle": {"type": "float", "default": 15.0, "description": "Rain angle"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "rain_effect"
+
+### 66. **snow_effect**
+- **name**: "snow_effect"
+- **description**: "Apply snow effect with white particles"
+- **parameters**: {"density": {"type": "float", "default": 0.5, "description": "Snow density"}, "size": {"type": "float", "default": 0.8, "description": "Snow particle size"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "snow_effect"
+
+### 67. **light_leak**
+- **name**: "light_leak"
+- **description**: "Apply light leak effect like old film cameras"
+- **parameters**: {"intensity": {"type": "float", "default": 0.4, "description": "Light leak intensity"}, "color": {"type": "array", "default": [255, 200, 150], "description": "Light leak color in BGR format"}, "position": {"type": "string", "default": "top", "description": "Light leak position (top, bottom, left, right)"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "light_leak"
+
+### 68. **film_grain**
+- **name**: "film_grain"
+- **description**: "Apply film grain effect for vintage look"
+- **parameters**: {"intensity": {"type": "float", "default": 0.3, "description": "Grain intensity"}, "size": {"type": "float", "default": 1.0, "description": "Grain size"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "film_grain"
+
+### 69. **vignette**
+- **name**: "vignette"
+- **description**: "Apply vignette effect to darken corners"
+- **parameters**: {"intensity": {"type": "float", "default": 0.5, "description": "Vignette intensity"}, "radius": {"type": "float", "default": 0.7, "description": "Vignette radius (0.0 to 1.0)"}, "feather": {"type": "float", "default": 0.3, "description": "Vignette feathering"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "vignette"
+
+### 70. **lens_flare**
+- **name**: "lens_flare"
+- **description**: "Apply lens flare effect"
+- **parameters**: {"position_x": {"type": "float", "default": 0.8, "description": "Flare X position (0.0 to 1.0)"}, "position_y": {"type": "float", "default": 0.2, "description": "Flare Y position (0.0 to 1.0)"}, "intensity": {"type": "float", "default": 0.6, "description": "Flare intensity"}, "color": {"type": "array", "default": [255, 255, 200], "description": "Flare color in BGR format"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "lens_flare"
+
+### 71. **chromatic_aberration**
+- **name**: "chromatic_aberration"
+- **description**: "Apply chromatic aberration effect"
+- **parameters**: {"red_offset": {"type": "array", "default": [2, 0], "description": "Red channel offset [x, y]"}, "blue_offset": {"type": "array", "default": [-2, 0], "description": "Blue channel offset [x, y]"}, "green_offset": {"type": "array", "default": [0, 0], "description": "Green channel offset [x, y]"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "chromatic_aberration"
+
+### 72. **bloom**
+- **name**: "bloom"
+- **description**: "Apply bloom effect for bright areas"
+- **parameters**: {"threshold": {"type": "float", "default": 200.0, "description": "Brightness threshold"}, "intensity": {"type": "float", "default": 0.5, "description": "Bloom intensity"}, "radius": {"type": "int", "default": 10, "description": "Bloom radius"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "bloom"
+
+### 73. **hdr_effect**
+- **name**: "hdr_effect"
+- **description**: "Apply HDR (High Dynamic Range) effect"
+- **parameters**: {"gamma": {"type": "float", "default": 0.8, "description": "Gamma correction"}, "saturation": {"type": "float", "default": 1.2, "description": "Saturation boost"}, "detail": {"type": "float", "default": 0.3, "description": "Detail enhancement"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "hdr_effect"
+
+### 74. **cross_processing**
+- **name**: "cross_processing"
+- **description**: "Apply cross-processing effect like E6 film in C41 chemicals"
+- **parameters**: {"color_shift": {"type": "float", "default": 0.3, "description": "Color shift intensity"}, "contrast": {"type": "float", "default": 1.3, "description": "Contrast boost"}, "saturation": {"type": "float", "default": 1.5, "description": "Saturation boost"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "cross_processing"
+
+### 75. **lomo_effect**
+- **name**: "lomo_effect"
+- **description**: "Apply Lomography camera effect"
+- **parameters**: {"vignette": {"type": "float", "default": 0.6, "description": "Vignette intensity"}, "saturation": {"type": "float", "default": 1.4, "description": "Saturation boost"}, "contrast": {"type": "float", "default": 1.2, "description": "Contrast boost"}, "light_leak": {"type": "float", "default": 0.3, "description": "Light leak intensity"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "lomo_effect"
+
+### 76. **unsharp_mask**
+- **name**: "unsharp_mask"
+- **description**: "Apply unsharp mask filter to enhance image sharpness"
+- **parameters**: {"kernel_size": {"type": "tuple", "default": [5, 5], "description": "Kernel size for Gaussian blur"}, "sigma": {"type": "float", "default": 1.0, "description": "Standard deviation for Gaussian blur"}, "amount": {"type": "float", "default": 1.0, "description": "Amount of sharpening"}, "threshold": {"type": "float", "default": 0.0, "description": "Threshold for sharpening"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "unsharp_mask"
+
+### 77. **laplacian_sharpen**
+- **name**: "laplacian_sharpen"
+- **description**: "Sharpen image using Laplacian operator"
+- **parameters**: {"ksize": {"type": "int", "default": 3, "description": "Kernel size for Laplacian"}, "scale": {"type": "float", "default": 1.0, "description": "Scale factor for sharpening"}, "delta": {"type": "float", "default": 0.0, "description": "Delta value"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "laplacian_sharpen"
+
+### 78. **emboss**
+- **name**: "emboss"
+- **description**: "Apply emboss effect to create 3D-like appearance"
+- **parameters**: {"kernel_size": {"type": "int", "default": 3, "description": "Kernel size for emboss effect"}, "strength": {"type": "float", "default": 1.0, "description": "Strength of emboss effect"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "emboss"
+
+### 79. **sepia**
+- **name**: "sepia"
+- **description**: "Apply sepia tone effect to create vintage appearance"
+- **parameters**: {"intensity": {"type": "float", "default": 0.8, "description": "Intensity of sepia effect (0.0 to 1.0)"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "sepia"
+
+### 80. **vintage**
+- **name**: "vintage"
+- **description**: "Apply vintage film effect with color grading"
+- **parameters**: {"warmth": {"type": "float", "default": 0.1, "description": "Warmth adjustment (-1.0 to 1.0)"}, "saturation": {"type": "float", "default": 0.8, "description": "Saturation adjustment (0.0 to 2.0)"}, "contrast": {"type": "float", "default": 1.2, "description": "Contrast adjustment (0.5 to 2.0)"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "vintage"
+
+### 81. **cartoon**
+- **name**: "cartoon"
+- **description**: "Apply cartoon effect with edge detection and color quantization"
+- **parameters**: {"edge_strength": {"type": "float", "default": 0.5, "description": "Strength of edge detection"}, "color_levels": {"type": "int", "default": 8, "description": "Number of color levels for quantization"}, "blur_strength": {"type": "int", "default": 7, "description": "Bilateral filter strength"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "cartoon"
+
+### 82. **oil_painting**
+- **name**: "oil_painting"
+- **description**: "Apply oil painting effect using bilateral filter and color quantization"
+- **parameters**: {"radius": {"type": "int", "default": 4, "description": "Radius for oil painting effect"}, "intensity": {"type": "int", "default": 30, "description": "Intensity of the effect"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "oil_painting"
+
+### 83. **watercolor**
+- **name**: "watercolor"
+- **description**: "Apply watercolor painting effect"
+- **parameters**: {"blur_radius": {"type": "int", "default": 5, "description": "Blur radius for watercolor effect"}, "edge_strength": {"type": "float", "default": 0.3, "description": "Edge preservation strength"}, "saturation": {"type": "float", "default": 1.2, "description": "Saturation boost"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "watercolor"
+
+### 84. **sketch**
+- **name**: "sketch"
+- **description**: "Convert image to pencil sketch effect"
+- **parameters**: {"blur_strength": {"type": "int", "default": 5, "description": "Blur strength for sketch effect"}, "edge_threshold": {"type": "float", "default": 50.0, "description": "Edge detection threshold"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "sketch"
+
+### 85. **invert**
+- **name**: "invert"
+- **description**: "Invert the colors of the image"
+- **parameters**: {}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "invert"
+
+### 86. **solarize**
+- **name**: "solarize"
+- **description**: "Apply solarization effect (partial color inversion)"
+- **parameters**: {"threshold": {"type": "int", "default": 128, "description": "Threshold for solarization effect"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "solarize"
+
+### 87. **posterize**
+- **name**: "posterize"
+- **description**: "Reduce number of colors to create poster-like effect"
+- **parameters**: {"levels": {"type": "int", "default": 4, "description": "Number of color levels (2-8)"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "posterize"
+
+### 88. **color_balance**
+- **name**: "color_balance"
+- **description**: "Adjust color balance for shadows, midtones, and highlights"
+- **parameters**: {"shadows": {"type": "array", "default": [1.0, 1.0, 1.0], "description": "Color balance for shadows [B, G, R]"}, "midtones": {"type": "array", "default": [1.0, 1.0, 1.0], "description": "Color balance for midtones [B, G, R]"}, "highlights": {"type": "array", "default": [1.0, 1.0, 1.0], "description": "Color balance for highlights [B, G, R]"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "color_balance"
+
+### 89. **color_temperature**
+- **name**: "color_temperature"
+- **description**: "Adjust color temperature (warm/cool tones)"
+- **parameters**: {"temperature": {"type": "float", "default": 0.0, "description": "Temperature adjustment (-100 to 100, negative=cool, positive=warm)"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "color_temperature"
+
+### 90. **tint**
+- **name**: "tint"
+- **description**: "Apply color tint to the image"
+- **parameters**: {"tint_color": {"type": "array", "default": [255, 200, 150], "description": "Tint color in BGR format"}, "strength": {"type": "float", "default": 0.3, "description": "Strength of tint effect (0.0 to 1.0)"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "tint"
+
+### 91. **duotone**
+- **name**: "duotone"
+- **description**: "Apply duotone effect with two colors"
+- **parameters**: {"color1": {"type": "array", "default": [0, 0, 255], "description": "First color in BGR format"}, "color2": {"type": "array", "default": [255, 255, 255], "description": "Second color in BGR format"}, "blend": {"type": "float", "default": 0.5, "description": "Blend ratio between colors"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "duotone"
+
+### 92. **gradient_map**
+- **name**: "gradient_map"
+- **description**: "Apply gradient mapping to replace colors with gradient"
+- **parameters**: {"gradient_colors": {"type": "array", "default": [[0, 0, 0], [255, 255, 255]], "description": "Array of gradient colors in BGR format"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "gradient_map"
+
+### 93. **lens_blur**
+- **name**: "lens_blur"
+- **description**: "Apply lens blur effect with depth of field simulation"
+- **parameters**: {"radius": {"type": "int", "default": 10, "description": "Blur radius"}, "center_x": {"type": "float", "default": 0.5, "description": "Center X position (0.0 to 1.0)"}, "center_y": {"type": "float", "default": 0.5, "description": "Center Y position (0.0 to 1.0)"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "lens_blur"
+
+### 94. **motion_blur**
+- **name**: "motion_blur"
+- **description**: "Apply motion blur effect to simulate camera movement"
+- **parameters**: {"angle": {"type": "float", "default": 0.0, "description": "Motion angle in degrees"}, "strength": {"type": "int", "default": 15, "description": "Blur strength"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "motion_blur"
+
+### 95. **radial_blur**
+- **name**: "radial_blur"
+- **description**: "Apply radial blur effect from center point"
+- **parameters**: {"center_x": {"type": "float", "default": 0.5, "description": "Center X position (0.0 to 1.0)"}, "center_y": {"type": "float", "default": 0.5, "description": "Center Y position (0.0 to 1.0)"}, "strength": {"type": "float", "default": 0.1, "description": "Blur strength"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "radial_blur"
+
+### 96. **perspective_transform**
+- **name**: "perspective_transform"
+- **description**: "Apply perspective transformation to change viewing angle"
+- **parameters**: {"src_points": {"type": "array", "default": [[0, 0], [640, 0], [640, 480], [0, 480]], "description": "Source points for transformation"}, "dst_points": {"type": "array", "default": [[50, 50], [590, 30], [590, 450], [50, 430]], "description": "Destination points for transformation"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "perspective_transform"
+
+### 97. **affine_transform**
+- **name**: "affine_transform"
+- **description**: "Apply affine transformation (rotation, scaling, translation)"
+- **parameters**: {"angle": {"type": "float", "default": 0.0, "description": "Rotation angle in degrees"}, "scale": {"type": "float", "default": 1.0, "description": "Scale factor"}, "tx": {"type": "float", "default": 0.0, "description": "Translation in X direction"}, "ty": {"type": "float", "default": 0.0, "description": "Translation in Y direction"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "affine_transform"
+
+### 98. **mirror**
+- **name**: "mirror"
+- **description**: "Mirror/flip the image horizontally or vertically"
+- **parameters**: {"direction": {"type": "string", "default": "horizontal", "description": "Mirror direction (horizontal, vertical, both)"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "mirror"
+
+### 99. **rotate**
+- **name**: "rotate"
+- **description**: "Rotate image by specified angle"
+- **parameters**: {"angle": {"type": "float", "default": 90.0, "description": "Rotation angle in degrees"}, "center_x": {"type": "float", "default": -1, "description": "Center X coordinate (-1 for image center)"}, "center_y": {"type": "float", "default": -1, "description": "Center Y coordinate (-1 for image center)"}, "scale": {"type": "float", "default": 1.0, "description": "Scale factor during rotation"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "rotate"
+
+### 100. **tilt_shift**
+- **name**: "tilt_shift"
+- **description**: "Apply tilt-shift effect to simulate miniature photography"
+- **parameters**: {"focus_center": {"type": "float", "default": 0.5, "description": "Focus center position (0.0 to 1.0)"}, "focus_width": {"type": "float", "default": 0.2, "description": "Focus area width (0.0 to 1.0)"}, "blur_strength": {"type": "int", "default": 15, "description": "Blur strength outside focus area"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "tilt_shift"
+
+### 101. **fisheye**
+- **name**: "fisheye"
+- **description**: "Apply fisheye lens distortion effect"
+- **parameters**: {"strength": {"type": "float", "default": 0.3, "description": "Distortion strength (0.0 to 1.0)"}, "center_x": {"type": "float", "default": 0.5, "description": "Center X position (0.0 to 1.0)"}, "center_y": {"type": "float", "default": 0.5, "description": "Center Y position (0.0 to 1.0)"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "fisheye"
+
+### 102. **barrel_distortion**
+- **name**: "barrel_distortion"
+- **description**: "Apply barrel distortion effect"
+- **parameters**: {"k1": {"type": "float", "default": 0.1, "description": "First distortion coefficient"}, "k2": {"type": "float", "default": 0.05, "description": "Second distortion coefficient"}, "k3": {"type": "float", "default": 0.0, "description": "Third distortion coefficient"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "barrel_distortion"
+
+### 103. **pincushion_distortion**
+- **name**: "pincushion_distortion"
+- **description**: "Apply pincushion distortion effect"
+- **parameters**: {"k1": {"type": "float", "default": -0.1, "description": "First distortion coefficient"}, "k2": {"type": "float", "default": -0.05, "description": "Second distortion coefficient"}, "k3": {"type": "float", "default": 0.0, "description": "Third distortion coefficient"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "pincushion_distortion"
+
+### 104. **wave_distortion**
+- **name**: "wave_distortion"
+- **description**: "Apply wave-like distortion effect"
+- **parameters**: {"amplitude": {"type": "float", "default": 10.0, "description": "Wave amplitude"}, "frequency": {"type": "float", "default": 0.1, "description": "Wave frequency"}, "phase": {"type": "float", "default": 0.0, "description": "Wave phase"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "wave_distortion"
+
+### 105. **ripple_effect**
+- **name**: "ripple_effect"
+- **description**: "Apply ripple effect like water surface"
+- **parameters**: {"center_x": {"type": "float", "default": 0.5, "description": "Ripple center X (0.0 to 1.0)"}, "center_y": {"type": "float", "default": 0.5, "description": "Ripple center Y (0.0 to 1.0)"}, "amplitude": {"type": "float", "default": 20.0, "description": "Ripple amplitude"}, "frequency": {"type": "float", "default": 0.05, "description": "Ripple frequency"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "ripple_effect"
+
+### 106. **pixelate**
+- **name**: "pixelate"
+- **description**: "Create pixelated effect by reducing resolution"
+- **parameters**: {"block_size": {"type": "int", "default": 10, "description": "Size of pixel blocks"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "pixelate"
+
+### 107. **mosaic**
+- **name**: "mosaic"
+- **description**: "Create mosaic effect with colored tiles"
+- **parameters**: {"tile_size": {"type": "int", "default": 20, "description": "Size of mosaic tiles"}, "color_variation": {"type": "float", "default": 0.3, "description": "Color variation between tiles"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "mosaic"
+
+### 108. **halftone**
+- **name**: "halftone"
+- **description**: "Apply halftone printing effect"
+- **parameters**: {"dot_size": {"type": "int", "default": 5, "description": "Size of halftone dots"}, "angle": {"type": "float", "default": 45.0, "description": "Dot pattern angle"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "halftone"
+
+### 109. **crosshatch**
+- **name**: "crosshatch"
+- **description**: "Apply crosshatch drawing effect"
+- **parameters**: {"line_spacing": {"type": "int", "default": 10, "description": "Spacing between lines"}, "line_thickness": {"type": "int", "default": 1, "description": "Thickness of lines"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "crosshatch"
+
+### 110. **stipple**
+- **name**: "stipple"
+- **description**: "Apply stipple drawing effect with dots"
+- **parameters**: {"dot_size": {"type": "int", "default": 2, "description": "Size of stipple dots"}, "dot_spacing": {"type": "int", "default": 5, "description": "Spacing between dots"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "stipple"
+
+### 111. **engrave**
+- **name**: "engrave"
+- **description**: "Apply engraving effect with directional shading"
+- **parameters**: {"angle": {"type": "float", "default": 45.0, "description": "Engraving angle"}, "depth": {"type": "float", "default": 0.5, "description": "Engraving depth"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "engrave"
+
+### 112. **emboss_3d**
+- **name**: "emboss_3d"
+- **description**: "Apply 3D emboss effect with depth"
+- **parameters**: {"depth": {"type": "float", "default": 0.5, "description": "3D depth effect"}, "light_angle": {"type": "float", "default": 45.0, "description": "Light angle in degrees"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "emboss_3d"
+
+### 113. **relief**
+- **name**: "relief"
+- **description**: "Apply relief effect for 3D appearance"
+- **parameters**: {"strength": {"type": "float", "default": 0.5, "description": "Relief strength"}, "angle": {"type": "float", "default": 45.0, "description": "Light angle for relief"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "relief"
+
+### 114. **chrome**
+- **name**: "chrome"
+- **description**: "Apply chrome/metal surface effect"
+- **parameters**: {"reflection_strength": {"type": "float", "default": 0.7, "description": "Reflection strength"}, "metallic_quality": {"type": "float", "default": 0.8, "description": "Metallic appearance quality"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "chrome"
+
+### 115. **glass**
+- **name**: "glass"
+- **description**: "Apply glass/transparent effect"
+- **parameters**: {"transparency": {"type": "float", "default": 0.3, "description": "Transparency level (0.0 to 1.0)"}, "refraction": {"type": "float", "default": 0.1, "description": "Refraction effect strength"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "glass"
+
+### 116. **neon_glow**
+- **name**: "neon_glow"
+- **description**: "Apply neon glow effect around edges"
+- **parameters**: {"glow_color": {"type": "array", "default": [0, 255, 255], "description": "Neon glow color in BGR format"}, "glow_strength": {"type": "float", "default": 0.8, "description": "Glow strength"}, "glow_radius": {"type": "int", "default": 10, "description": "Glow radius"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "neon_glow"
+
+### 117. **fire_effect**
+- **name**: "fire_effect"
+- **description**: "Apply fire/flame effect"
+- **parameters**: {"intensity": {"type": "float", "default": 0.7, "description": "Fire intensity"}, "color_temperature": {"type": "float", "default": 0.8, "description": "Fire color temperature"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "fire_effect"
+
+### 118. **smoke_effect**
+- **name**: "smoke_effect"
+- **description**: "Apply smoke/fog effect"
+- **parameters**: {"density": {"type": "float", "default": 0.5, "description": "Smoke density"}, "opacity": {"type": "float", "default": 0.3, "description": "Smoke opacity"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "smoke_effect"
+
+### 119. **rain_effect**
+- **name**: "rain_effect"
+- **description**: "Apply rain effect with streaks"
+- **parameters**: {"intensity": {"type": "float", "default": 0.6, "description": "Rain intensity"}, "angle": {"type": "float", "default": 15.0, "description": "Rain angle"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "rain_effect"
+
+### 120. **snow_effect**
+- **name**: "snow_effect"
+- **description**: "Apply snow effect with white particles"
+- **parameters**: {"density": {"type": "float", "default": 0.5, "description": "Snow density"}, "size": {"type": "float", "default": 0.8, "description": "Snow particle size"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "snow_effect"
+
+### 121. **light_leak**
+- **name**: "light_leak"
+- **description**: "Apply light leak effect like old film cameras"
+- **parameters**: {"intensity": {"type": "float", "default": 0.4, "description": "Light leak intensity"}, "color": {"type": "array", "default": [255, 200, 150], "description": "Light leak color in BGR format"}, "position": {"type": "string", "default": "top", "description": "Light leak position (top, bottom, left, right)"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "light_leak"
+
+### 122. **film_grain**
+- **name**: "film_grain"
+- **description**: "Apply film grain effect for vintage look"
+- **parameters**: {"intensity": {"type": "float", "default": 0.3, "description": "Grain intensity"}, "size": {"type": "float", "default": 1.0, "description": "Grain size"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "film_grain"
+
+### 123. **vignette**
+- **name**: "vignette"
+- **description**: "Apply vignette effect to darken corners"
+- **parameters**: {"intensity": {"type": "float", "default": 0.5, "description": "Vignette intensity"}, "radius": {"type": "float", "default": 0.7, "description": "Vignette radius (0.0 to 1.0)"}, "feather": {"type": "float", "default": 0.3, "description": "Vignette feathering"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "vignette"
+
+### 124. **lens_flare**
+- **name**: "lens_flare"
+- **description**: "Apply lens flare effect"
+- **parameters**: {"position_x": {"type": "float", "default": 0.8, "description": "Flare X position (0.0 to 1.0)"}, "position_y": {"type": "float", "default": 0.2, "description": "Flare Y position (0.0 to 1.0)"}, "intensity": {"type": "float", "default": 0.6, "description": "Flare intensity"}, "color": {"type": "array", "default": [255, 255, 200], "description": "Flare color in BGR format"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "lens_flare"
+
+### 125. **chromatic_aberration**
+- **name**: "chromatic_aberration"
+- **description**: "Apply chromatic aberration effect"
+- **parameters**: {"red_offset": {"type": "array", "default": [2, 0], "description": "Red channel offset [x, y]"}, "blue_offset": {"type": "array", "default": [-2, 0], "description": "Blue channel offset [x, y]"}, "green_offset": {"type": "array", "default": [0, 0], "description": "Green channel offset [x, y]"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "chromatic_aberration"
+
+### 126. **bloom**
+- **name**: "bloom"
+- **description**: "Apply bloom effect for bright areas"
+- **parameters**: {"threshold": {"type": "float", "default": 200.0, "description": "Brightness threshold"}, "intensity": {"type": "float", "default": 0.5, "description": "Bloom intensity"}, "radius": {"type": "int", "default": 10, "description": "Bloom radius"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "bloom"
+
+### 127. **hdr_effect**
+- **name**: "hdr_effect"
+- **description**: "Apply HDR (High Dynamic Range) effect"
+- **parameters**: {"gamma": {"type": "float", "default": 0.8, "description": "Gamma correction"}, "saturation": {"type": "float", "default": 1.2, "description": "Saturation boost"}, "detail": {"type": "float", "default": 0.3, "description": "Detail enhancement"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "hdr_effect"
+
+### 128. **cross_processing**
+- **name**: "cross_processing"
+- **description**: "Apply cross-processing effect like E6 film in C41 chemicals"
+- **parameters**: {"color_shift": {"type": "float", "default": 0.3, "description": "Color shift intensity"}, "contrast": {"type": "float", "default": 1.3, "description": "Contrast boost"}, "saturation": {"type": "float", "default": 1.5, "description": "Saturation boost"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "cross_processing"
+
+### 129. **lomo_effect**
+- **name**: "lomo_effect"
+- **description**: "Apply Lomography camera effect"
+- **parameters**: {"vignette": {"type": "float", "default": 0.6, "description": "Vignette intensity"}, "saturation": {"type": "float", "default": 1.4, "description": "Saturation boost"}, "contrast": {"type": "float", "default": 1.2, "description": "Contrast boost"}, "light_leak": {"type": "float", "default": 0.3, "description": "Light leak intensity"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "lomo_effect"
+
+### 130. **mask**
+- **name**: "mask"
+- **description**: "Apply a binary mask to the image, keeping only masked regions."
+- **parameters**: {"mask": {"type": "array", "default": [], "description": "Binary mask array (same size as image)"}}
+- **inputs**: ["image", "mask"]
+- **outputs**: ["image"]
+- **operator**: "mask"
+
+### 131. **crop_region**
+- **name**: "crop_region"
+- **description**: "Crop a rectangular region from the image."
+- **parameters**: {"x": {"type": "int", "default": 0, "description": "Top-left x"}, "y": {"type": "int", "default": 0, "description": "Top-left y"}, "width": {"type": "int", "default": 100, "description": "Width"}, "height": {"type": "int", "default": 100, "description": "Height"}}
+- **inputs**: ["image"]
+- **outputs**: ["image"]
+- **operator**: "crop_region"
+
+### 132. **fill_region**
+- **name**: "fill_region"
+- **description**: "Fill a region with a solid color or pattern."
+- **parameters**: {"color": {"type": "array", "default": [255,255,255], "description": "BGR color"}, "mask": {"type": "array", "default": [], "description": "Optional binary mask"}, "pattern": {"type": "str", "default": "solid", "description": "Pattern type: solid, stripes, checkerboard, etc."}}
+- **inputs**: ["image", "mask"]
+- **outputs**: ["image"]
+- **operator**: "fill_region" 

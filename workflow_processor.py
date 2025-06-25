@@ -1,15 +1,20 @@
-import cv2
-import numpy as np
+# Standard library imports
 import json
 import re
-from typing import Dict, List, Any, Optional, Tuple
+import os
 import base64
 from io import BytesIO
+from typing import Dict, List, Any, Optional, Tuple, TYPE_CHECKING
+
+# import cv2
+
+import numpy as np
 from PIL import Image
 import openai
-import os
+from sklearn.cluster import KMeans
 
 class Node:
+
     """Represents a processing node in the workflow"""
     
     def __init__(self, node_id: str, node_type: str, parameters: Optional[Dict[str, Any]] = None, 
@@ -191,7 +196,9 @@ class WorkflowProcessor:
         return order
     
     def _execute_node(self, node: Node, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        import cv2
         """Execute a single node with given input data"""
+        # type: ignore  # Suppress cv2-related linter warnings
         operator = self.node_specs[node.node_type]["operator"]
         
         print(f"Executing node {node.node_id} of type {node.node_type} with operator {operator}")
@@ -283,17 +290,17 @@ class WorkflowProcessor:
             
             # Convert string to cv2 constant
             if thresh_type == "THRESH_BINARY":
-                thresh_type = cv2.THRESH_BINARY
+                thresh_type = cv2.THRESH_BINARY  # type: ignore
             elif thresh_type == "THRESH_BINARY_INV":
-                thresh_type = cv2.THRESH_BINARY_INV
+                thresh_type = cv2.THRESH_BINARY_INV  # type: ignore
             elif thresh_type == "THRESH_TRUNC":
-                thresh_type = cv2.THRESH_TRUNC
+                thresh_type = cv2.THRESH_TRUNC  # type: ignore
             elif thresh_type == "THRESH_TOZERO":
-                thresh_type = cv2.THRESH_TOZERO
+                thresh_type = cv2.THRESH_TOZERO  # type: ignore
             elif thresh_type == "THRESH_TOZERO_INV":
-                thresh_type = cv2.THRESH_TOZERO_INV
+                thresh_type = cv2.THRESH_TOZERO_INV  # type: ignore
                 
-            _, result = cv2.threshold(image, thresh, maxval, thresh_type)
+            _, result = cv2.threshold(image, thresh, maxval, thresh_type)  # type: ignore
             return {"image": result}
             
         elif operator == "adaptive_threshold":
@@ -304,20 +311,20 @@ class WorkflowProcessor:
             adaptive_method = node.parameters.get("adaptive_method", "ADAPTIVE_THRESH_GAUSSIAN_C")
             threshold_type = node.parameters.get("threshold_type", "THRESH_BINARY")
             block_size = node.parameters.get("block_size", 11)
-            c = node.parameters.get("c", 2.0)
+            c_value = node.parameters.get("c", 2.0)
             
             # Convert strings to cv2 constants
             if adaptive_method == "ADAPTIVE_THRESH_GAUSSIAN_C":
-                adaptive_method = cv2.ADAPTIVE_THRESH_GAUSSIAN_C
+                adaptive_method = cv2.ADAPTIVE_THRESH_GAUSSIAN_C  # type: ignore
             elif adaptive_method == "ADAPTIVE_THRESH_MEAN_C":
-                adaptive_method = cv2.ADAPTIVE_THRESH_MEAN_C
+                adaptive_method = cv2.ADAPTIVE_THRESH_MEAN_C  # type: ignore
                 
             if threshold_type == "THRESH_BINARY":
-                threshold_type = cv2.THRESH_BINARY
+                threshold_type = cv2.THRESH_BINARY  # type: ignore
             elif threshold_type == "THRESH_BINARY_INV":
-                threshold_type = cv2.THRESH_BINARY_INV
+                threshold_type = cv2.THRESH_BINARY_INV  # type: ignore
                 
-            result = cv2.adaptiveThreshold(image, max_value, adaptive_method, threshold_type, block_size, c)
+            result = cv2.adaptiveThreshold(image, max_value, adaptive_method, threshold_type, block_size, c_value)  # type: ignore
             return {"image": result}
             
         elif operator == "morphology":
@@ -329,19 +336,19 @@ class WorkflowProcessor:
             iterations = node.parameters.get("iterations", 1)
             
             # Create kernel
-            kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (kernel_size, kernel_size))
+            kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (kernel_size, kernel_size))  # type: ignore
             
             # Convert string to cv2 constant
             if operation == "MORPH_OPEN":
-                operation = cv2.MORPH_OPEN
+                operation = cv2.MORPH_OPEN  # type: ignore
             elif operation == "MORPH_CLOSE":
-                operation = cv2.MORPH_CLOSE
+                operation = cv2.MORPH_CLOSE  # type: ignore
             elif operation == "MORPH_ERODE":
-                operation = cv2.MORPH_ERODE
+                operation = cv2.MORPH_ERODE  # type: ignore
             elif operation == "MORPH_DILATE":
-                operation = cv2.MORPH_DILATE
+                operation = cv2.MORPH_DILATE  # type: ignore
                 
-            result = cv2.morphologyEx(image, operation, kernel, iterations=iterations)
+            result = cv2.morphologyEx(image, operation, kernel, iterations=iterations)  # type: ignore
             return {"image": result}
             
         elif operator == "histogram_equalization":
@@ -507,6 +514,855 @@ class WorkflowProcessor:
             
             return {"image": result}
             
+        elif operator == "unsharp_mask":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for unsharp_mask operation")
+            kernel_size = tuple(node.parameters.get("kernel_size", [5, 5]))
+            sigma = node.parameters.get("sigma", 1.0)
+            amount = node.parameters.get("amount", 1.0)
+            threshold = node.parameters.get("threshold", 0.0)
+            blurred = cv2.GaussianBlur(image, kernel_size, sigma)
+            sharpened = cv2.addWeighted(image, 1 + amount, blurred, -amount, 0)
+            if threshold > 0:
+                low_contrast_mask = np.abs(image - blurred) < threshold
+                np.copyto(sharpened, image, where=low_contrast_mask)
+            return {"image": sharpened}
+
+        elif operator == "laplacian_sharpen":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for laplacian_sharpen operation")
+            ksize = node.parameters.get("ksize", 3)
+            scale = node.parameters.get("scale", 1.0)
+            delta = node.parameters.get("delta", 0.0)
+            lap = cv2.Laplacian(image, cv2.CV_64F, ksize=ksize, scale=scale, delta=delta)
+            sharp = cv2.convertScaleAbs(image - lap)
+            return {"image": sharp}
+
+        elif operator == "emboss":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for emboss operation")
+            kernel_size = node.parameters.get("kernel_size", 3)
+            strength = node.parameters.get("strength", 1.0)
+            kernel = np.array([[-2, -1, 0], [-1, 1, 1], [0, 1, 2]]) * strength
+            result = cv2.filter2D(image, -1, kernel)
+            return {"image": result}
+
+        elif operator == "sepia":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for sepia operation")
+            intensity = node.parameters.get("intensity", 0.8)
+            sepia_filter = np.array([[0.272, 0.534, 0.131],
+                                     [0.349, 0.686, 0.168],
+                                     [0.393, 0.769, 0.189]])
+            sepia_img = cv2.transform(image, sepia_filter)
+            sepia_img = np.clip(sepia_img, 0, 255).astype(np.uint8)
+            result = cv2.addWeighted(image, 1 - intensity, sepia_img, intensity, 0)
+            return {"image": result}
+
+        elif operator == "vintage":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for vintage operation")
+            warmth = node.parameters.get("warmth", 0.1)
+            saturation = node.parameters.get("saturation", 0.8)
+            contrast = node.parameters.get("contrast", 1.2)
+            img = image.astype(np.float32)
+            img = img * contrast
+            img = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_BGR2HSV).astype(np.float32)
+            img[..., 1] *= saturation
+            img[..., 0] += warmth * 10
+            img = np.clip(img, 0, 255).astype(np.uint8)
+            img = cv2.cvtColor(img, cv2.COLOR_HSV2BGR)
+            return {"image": img}
+
+        elif operator == "cartoon":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for cartoon operation")
+            edge_strength = node.parameters.get("edge_strength", 0.5)
+            color_levels = node.parameters.get("color_levels", 8)
+            blur_strength = node.parameters.get("blur_strength", 7)
+            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            edges = cv2.medianBlur(gray, 7)
+            edges = cv2.adaptiveThreshold(edges, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 9, 2)
+            data = np.float32(image.reshape((-1, 3)))
+            criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 20, 0.001)
+            kmeans = KMeans(n_clusters=color_levels, n_init='auto', max_iter=20)
+            labels = kmeans.fit_predict(data)
+            quant = kmeans.cluster_centers_[labels.flatten()].reshape(image.shape)
+            quant = np.clip(quant, 0, 255).astype(np.uint8)
+            blurred = cv2.bilateralFilter(quant, d=blur_strength, sigmaColor=200, sigmaSpace=200)
+            if edges.dtype != np.uint8:
+                edges = edges.astype(np.uint8)
+            cartoon = cv2.bitwise_and(blurred, blurred, mask=edges)
+            return {"image": cartoon}
+
+        elif operator == "oil_painting":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for oil_painting operation")
+            radius = node.parameters.get("radius", 4)
+            intensity = node.parameters.get("intensity", 30)
+            result = None
+            try:
+                # import cv2.xphoto
+                
+                result = cv2.xphoto.oilPainting(image, radius, intensity)
+            except Exception:
+                result = None
+            if result is None:
+                # Fallback: use median blur and quantization
+                result = cv2.medianBlur(image, radius)
+            return {"image": result}
+
+        elif operator == "watercolor":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for watercolor operation")
+            blur_radius = node.parameters.get("blur_radius", 5)
+            edge_strength = node.parameters.get("edge_strength", 0.3)
+            saturation = node.parameters.get("saturation", 1.2)
+            blurred = cv2.edgePreservingFilter(image, flags=1, sigma_s=60, sigma_r=0.4)
+            img = cv2.bilateralFilter(blurred, d=9, sigmaColor=75, sigmaSpace=75)
+            hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV).astype(np.float32)
+            hsv[..., 1] *= saturation
+            hsv = np.clip(hsv, 0, 255).astype(np.uint8)
+            img = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+            return {"image": img}
+
+        elif operator == "sketch":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for sketch operation")
+            blur_strength = node.parameters.get("blur_strength", 5)
+            edge_threshold = node.parameters.get("edge_threshold", 50.0)
+            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            inv = 255 - gray
+            blur = cv2.GaussianBlur(inv, (blur_strength | 1, blur_strength | 1), 0)
+            sketch = cv2.divide(gray, 255 - blur, scale=256)
+            _, sketch = cv2.threshold(sketch, edge_threshold, 255, cv2.THRESH_BINARY)
+            return {"image": cv2.cvtColor(sketch, cv2.COLOR_GRAY2BGR)}
+
+        elif operator == "invert":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for invert operation")
+            result = cv2.bitwise_not(image)
+            return {"image": result}
+
+        elif operator == "solarize":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for solarize operation")
+            threshold = node.parameters.get("threshold", 128)
+            result = np.where(image < threshold, image, 255 - image)
+            result = result.astype(np.uint8)
+            return {"image": result}
+
+        elif operator == "posterize":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for posterize operation")
+            levels = node.parameters.get("levels", 4)
+            shift = 8 - int(np.log2(levels))
+            result = np.right_shift(image, shift)
+            result = np.left_shift(result, shift)
+            return {"image": result}
+
+        elif operator == "color_balance":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for color_balance operation")
+            shadows = np.array(node.parameters.get("shadows", [1.0, 1.0, 1.0]))
+            midtones = np.array(node.parameters.get("midtones", [1.0, 1.0, 1.0]))
+            highlights = np.array(node.parameters.get("highlights", [1.0, 1.0, 1.0]))
+            img = image.astype(np.float32)
+            mask_shadows = img < 85
+            mask_highlights = img > 170
+            mask_midtones = (~mask_shadows) & (~mask_highlights)
+            img[mask_shadows] *= shadows
+            img[mask_midtones] *= midtones
+            img[mask_highlights] *= highlights
+            img = np.clip(img, 0, 255).astype(np.uint8)
+            return {"image": img}
+
+        elif operator == "color_temperature":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for color_temperature operation")
+            temperature = node.parameters.get("temperature", 0.0)
+            img = image.astype(np.float32)
+            if temperature > 0:
+                img[..., 2] += temperature
+            else:
+                img[..., 0] -= temperature
+            img = np.clip(img, 0, 255).astype(np.uint8)
+            return {"image": img}
+
+        elif operator == "tint":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for tint operation")
+            tint_color = np.array(node.parameters.get("tint_color", [255, 200, 150]))
+            strength = node.parameters.get("strength", 0.3)
+            img = image.astype(np.float32)
+            img = (1 - strength) * img + strength * tint_color
+            img = np.clip(img, 0, 255).astype(np.uint8)
+            return {"image": img}
+
+        elif operator == "duotone":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for duotone operation")
+            color1 = np.array(node.parameters.get("color1", [0, 0, 255]))
+            color2 = np.array(node.parameters.get("color2", [255, 255, 255]))
+            blend = node.parameters.get("blend", 0.5)
+            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            norm = gray / 255.0
+            img = (1 - norm[..., None]) * color1 + norm[..., None] * color2
+            img = np.clip(img, 0, 255).astype(np.uint8)
+            return {"image": img}
+
+        elif operator == "gradient_map":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for gradient_map operation")
+            gradient_colors = node.parameters.get("gradient_colors", [[0, 0, 0], [255, 255, 255]])
+            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            norm = gray / 255.0
+            gradient_colors = np.array(gradient_colors)
+            idx = (norm * (len(gradient_colors) - 1)).astype(int)
+            img = gradient_colors[idx]
+            img = np.clip(img, 0, 255).astype(np.uint8)
+            return {"image": img}
+
+        elif operator == "lens_blur":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for lens_blur operation")
+            radius = node.parameters.get("radius", 10)
+            center_x = node.parameters.get("center_x", 0.5)
+            center_y = node.parameters.get("center_y", 0.5)
+            h, w = image.shape[:2]
+            Y, X = np.ogrid[:h, :w]
+            cx, cy = int(center_x * w), int(center_y * h)
+            mask = ((X - cx) ** 2 + (Y - cy) ** 2) > (radius ** 2)
+            blurred = cv2.GaussianBlur(image, (radius | 1, radius | 1), 0)
+            result = image.copy()
+            result[mask] = blurred[mask]
+            return {"image": result}
+
+        elif operator == "motion_blur":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for motion_blur operation")
+            angle = node.parameters.get("angle", 0.0)
+            strength = node.parameters.get("strength", 15)
+            kernel = np.zeros((strength, strength))
+            kernel[int((strength - 1) / 2), :] = np.ones(strength)
+            kernel = cv2.warpAffine(kernel, cv2.getRotationMatrix2D((strength / 2 - 0.5, strength / 2 - 0.5), angle, 1.0), (strength, strength))
+            kernel = kernel / np.sum(kernel)
+            result = cv2.filter2D(image, -1, kernel)
+            return {"image": result}
+
+        elif operator == "radial_blur":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for radial_blur operation")
+            center_x = node.parameters.get("center_x", 0.5)
+            center_y = node.parameters.get("center_y", 0.5)
+            strength = node.parameters.get("strength", 0.1)
+            h, w = image.shape[:2]
+            Y, X = np.ogrid[:h, :w]
+            cx, cy = int(center_x * w), int(center_y * h)
+            dist = np.sqrt((X - cx) ** 2 + (Y - cy) ** 2)
+            max_dist = np.max(dist)
+            blur_amount = (dist / max_dist) * strength * 20
+            result = image.copy()
+            for i in range(1, int(np.max(blur_amount)) + 1):
+                mask = (blur_amount >= i - 1) & (blur_amount < i)
+                if np.any(mask):
+                    blurred = cv2.GaussianBlur(image, (i * 2 + 1, i * 2 + 1), 0)
+                    result[mask] = blurred[mask]
+            return {"image": result}
+
+        elif operator == "perspective_transform":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for perspective_transform operation")
+            src_points = np.array(node.parameters.get("src_points", [[0, 0], [640, 0], [640, 480], [0, 480]]), dtype=np.float32)
+            dst_points = np.array(node.parameters.get("dst_points", [[50, 50], [590, 30], [590, 450], [50, 430]]), dtype=np.float32)
+            M = cv2.getPerspectiveTransform(src_points, dst_points)
+            h, w = image.shape[:2]
+            result = cv2.warpPerspective(image, M, (w, h))
+            return {"image": result}
+
+        elif operator == "affine_transform":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for affine_transform operation")
+            angle = node.parameters.get("angle", 0.0)
+            scale = node.parameters.get("scale", 1.0)
+            tx = node.parameters.get("tx", 0.0)
+            ty = node.parameters.get("ty", 0.0)
+            h, w = image.shape[:2]
+            M = cv2.getRotationMatrix2D((w / 2, h / 2), angle, scale)
+            M[0, 2] += tx
+            M[1, 2] += ty
+            result = cv2.warpAffine(image, M, (w, h))
+            return {"image": result}
+
+        elif operator == "mirror":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for mirror operation")
+            direction = node.parameters.get("direction", "horizontal")
+            if direction == "horizontal":
+                result = cv2.flip(image, 1)
+            elif direction == "vertical":
+                result = cv2.flip(image, 0)
+            elif direction == "both":
+                result = cv2.flip(image, -1)
+            else:
+                result = image
+            return {"image": result}
+
+        elif operator == "rotate":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for rotate operation")
+            angle = node.parameters.get("angle", 90.0)
+            center_x = node.parameters.get("center_x", -1)
+            center_y = node.parameters.get("center_y", -1)
+            scale = node.parameters.get("scale", 1.0)
+            h, w = image.shape[:2]
+            if center_x == -1 or center_y == -1:
+                center = (w // 2, h // 2)
+            else:
+                center = (int(center_x), int(center_y))
+            M = cv2.getRotationMatrix2D(center, angle, scale)
+            result = cv2.warpAffine(image, M, (w, h))
+            return {"image": result}
+
+        elif operator == "tilt_shift":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for tilt_shift operation")
+            focus_center = node.parameters.get("focus_center", 0.5)
+            focus_width = node.parameters.get("focus_width", 0.2)
+            blur_strength = node.parameters.get("blur_strength", 15)
+            h, w = image.shape[:2]
+            mask = np.zeros((h, w), np.float32)
+            y1 = int((focus_center - focus_width / 2) * h)
+            y2 = int((focus_center + focus_width / 2) * h)
+            mask[y1:y2, :] = 1.0
+            mask = cv2.GaussianBlur(mask, (blur_strength | 1, blur_strength | 1), 0)
+            blurred = cv2.GaussianBlur(image, (blur_strength | 1, blur_strength | 1), 0)
+            result = image * mask[..., None] + blurred * (1 - mask[..., None])
+            result = np.clip(result, 0, 255).astype(np.uint8)
+            return {"image": result}
+
+        elif operator == "fisheye":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for fisheye operation")
+            strength = node.parameters.get("strength", 0.3)
+            center_x = node.parameters.get("center_x", 0.5)
+            center_y = node.parameters.get("center_y", 0.5)
+            h, w = image.shape[:2]
+            K = np.array([[w, 0, w * center_x], [0, w, h * center_y], [0, 0, 1]], dtype=np.float32)
+            D = np.array([strength, 0, 0, 0], dtype=np.float32)
+            map1, map2 = cv2.fisheye.initUndistortRectifyMap(K, D, np.eye(3), K, (w, h), cv2.CV_16SC2)
+            result = cv2.remap(image, map1, map2, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
+            return {"image": result}
+
+        elif operator == "barrel_distortion":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for barrel_distortion operation")
+            k1 = node.parameters.get("k1", 0.1)
+            k2 = node.parameters.get("k2", 0.05)
+            k3 = node.parameters.get("k3", 0.0)
+            h, w = image.shape[:2]
+            fx = w
+            fy = h
+            cx = w / 2
+            cy = h / 2
+            K = np.array([[fx, 0, cx], [0, fy, cy], [0, 0, 1]], dtype=np.float32)
+            D = np.array([k1, k2, k3, 0], dtype=np.float32)
+            map1, map2 = cv2.initUndistortRectifyMap(K, D, np.eye(3), K, (w, h), cv2.CV_16SC2)
+            result = cv2.remap(image, map1, map2, interpolation=cv2.INTER_LINEAR)
+            return {"image": result}
+
+        elif operator == "pincushion_distortion":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for pincushion_distortion operation")
+            k1 = node.parameters.get("k1", -0.1)
+            k2 = node.parameters.get("k2", -0.05)
+            k3 = node.parameters.get("k3", 0.0)
+            h, w = image.shape[:2]
+            fx = w
+            fy = h
+            cx = w / 2
+            cy = h / 2
+            K = np.array([[fx, 0, cx], [0, fy, cy], [0, 0, 1]], dtype=np.float32)
+            D = np.array([k1, k2, k3, 0], dtype=np.float32)
+            map1, map2 = cv2.initUndistortRectifyMap(K, D, np.eye(3), K, (w, h), cv2.CV_16SC2)
+            result = cv2.remap(image, map1, map2, interpolation=cv2.INTER_LINEAR)
+            return {"image": result}
+
+        elif operator == "wave_distortion":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for wave_distortion operation")
+            amplitude = node.parameters.get("amplitude", 10.0)
+            frequency = node.parameters.get("frequency", 0.1)
+            phase = node.parameters.get("phase", 0.0)
+            h, w = image.shape[:2]
+            map_y, map_x = np.indices((h, w), dtype=np.float32)
+            map_x_new = map_x + amplitude * np.sin(2 * np.pi * map_y * frequency + phase)
+            # Ensure map_x_new and map_y are contiguous and of type float32
+            map_x_new = np.ascontiguousarray(map_x_new, dtype=np.float32)
+            map_y = np.ascontiguousarray(map_y, dtype=np.float32)
+            result = cv2.remap(image, map_y, map_x_new, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT)
+            return {"image": result}
+
+        elif operator == "ripple_effect":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for ripple_effect operation")
+            center_x = node.parameters.get("center_x", 0.5)
+            center_y = node.parameters.get("center_y", 0.5)
+            amplitude = node.parameters.get("amplitude", 20.0)
+            frequency = node.parameters.get("frequency", 0.05)
+            h, w = image.shape[:2]
+            cx, cy = int(center_x * w), int(center_y * h)
+            Y, X = np.indices((h, w), dtype=np.float32)
+            r = np.sqrt((X - cx) ** 2 + (Y - cy) ** 2)
+            map_x = X + amplitude * np.sin(2 * np.pi * r * frequency)
+            map_y = Y + amplitude * np.cos(2 * np.pi * r * frequency)
+            result = cv2.remap(image, map_x, map_y, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT)
+            return {"image": result}
+
+        elif operator == "pixelate":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for pixelate operation")
+            block_size = node.parameters.get("block_size", 10)
+            h, w = image.shape[:2]
+            temp = cv2.resize(image, (w // block_size, h // block_size), interpolation=cv2.INTER_LINEAR)
+            result = cv2.resize(temp, (w, h), interpolation=cv2.INTER_NEAREST)
+            return {"image": result}
+
+        elif operator == "mosaic":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for mosaic operation")
+            tile_size = node.parameters.get("tile_size", 20)
+            color_variation = node.parameters.get("color_variation", 0.3)
+            h, w = image.shape[:2]
+            result = image.copy()
+            for y in range(0, h, tile_size):
+                for x in range(0, w, tile_size):
+                    roi = image[y:y+tile_size, x:x+tile_size]
+                    color = np.mean(roi.reshape(-1, 3), axis=0)
+                    color += np.random.uniform(-color_variation*128, color_variation*128, 3)
+                    color = np.clip(color, 0, 255)
+                    result[y:y+tile_size, x:x+tile_size] = color
+            return {"image": result.astype(np.uint8)}
+
+        elif operator == "halftone":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for halftone operation")
+            dot_size = node.parameters.get("dot_size", 5)
+            angle = node.parameters.get("angle", 45.0)
+            h, w = image.shape[:2]
+            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            result = np.ones_like(image) * 255
+            for y in range(0, h, dot_size):
+                for x in range(0, w, dot_size):
+                    roi = gray[y:y+dot_size, x:x+dot_size]
+                    avg = np.mean(roi)
+                    radius = int((1 - avg / 255.0) * (dot_size / 2))
+                    cv2.circle(result, (x + dot_size // 2, y + dot_size // 2), radius, (0, 0, 0), -1)
+            return {"image": result}
+
+        elif operator == "crosshatch":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for crosshatch operation")
+            line_spacing = node.parameters.get("line_spacing", 10)
+            line_thickness = node.parameters.get("line_thickness", 1)
+            h, w = image.shape[:2]
+            result = image.copy()
+            for y in range(0, h, line_spacing):
+                cv2.line(result, (0, y), (w, y), (0, 0, 0), line_thickness)
+            for x in range(0, w, line_spacing):
+                cv2.line(result, (x, 0), (x, h), (0, 0, 0), line_thickness)
+            return {"image": result}
+
+        elif operator == "stipple":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for stipple operation")
+            dot_size = node.parameters.get("dot_size", 2)
+            dot_spacing = node.parameters.get("dot_spacing", 5)
+            h, w = image.shape[:2]
+            result = image.copy()
+            for y in range(0, h, dot_spacing):
+                for x in range(0, w, dot_spacing):
+                    if np.random.rand() > 0.5:
+                        cv2.circle(result, (x, y), dot_size, (0, 0, 0), -1)
+            return {"image": result}
+
+        elif operator == "engrave":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for engrave operation")
+            angle = node.parameters.get("angle", 45.0)
+            depth = node.parameters.get("depth", 0.5)
+            kernel = np.array([[0, -1, 0], [-1, 4, -1], [0, -1, 0]]) * depth
+            result = cv2.filter2D(image, -1, kernel)
+            return {"image": result}
+
+        elif operator == "emboss_3d":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for emboss_3d operation")
+            depth = node.parameters.get("depth", 0.5)
+            light_angle = node.parameters.get("light_angle", 45.0)
+            kernel = np.array([[-1, -1, 0], [-1, 0, 1], [0, 1, 1]]) * depth
+            result = cv2.filter2D(image, -1, kernel)
+            return {"image": result}
+
+        elif operator == "relief":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for relief operation")
+            strength = node.parameters.get("strength", 0.5)
+            angle = node.parameters.get("angle", 45.0)
+            kernel = np.array([[0, 1, 0], [1, -4, 1], [0, 1, 0]]) * strength
+            result = cv2.filter2D(image, -1, kernel)
+            return {"image": result}
+
+        elif operator == "chrome":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for chrome operation")
+            reflection_strength = node.parameters.get("reflection_strength", 0.7)
+            metallic_quality = node.parameters.get("metallic_quality", 0.8)
+            img = cv2.GaussianBlur(image, (7, 7), 0)
+            img = cv2.addWeighted(image, 1 - metallic_quality, img, metallic_quality, 0)
+            img = cv2.addWeighted(img, 1, np.full_like(img, 200), reflection_strength, 0)
+            img = np.clip(img, 0, 255).astype(np.uint8)
+            return {"image": img}
+
+        elif operator == "glass":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for glass operation")
+            transparency = node.parameters.get("transparency", 0.3)
+            refraction = node.parameters.get("refraction", 0.1)
+            h, w = image.shape[:2]
+            result = image.copy().astype(np.float32)
+            for y in range(h):
+                for x in range(w):
+                    dx = int(refraction * np.sin(2 * np.pi * y / 60))
+                    dy = int(refraction * np.cos(2 * np.pi * x / 60))
+                    sx = np.clip(x + dx, 0, w - 1)
+                    sy = np.clip(y + dy, 0, h - 1)
+                    result[y, x] = (1 - transparency) * image[y, x] + transparency * image[sy, sx]
+            result = np.clip(result, 0, 255).astype(np.uint8)
+            return {"image": result}
+
+        elif operator == "neon_glow":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for neon_glow operation")
+            glow_color = np.array(node.parameters.get("glow_color", [0, 255, 255]))
+            glow_strength = node.parameters.get("glow_strength", 0.8)
+            glow_radius = node.parameters.get("glow_radius", 10)
+            edges = cv2.Canny(image, 100, 200)
+            edges_colored = np.zeros_like(image)
+            for c in range(3):
+                edges_colored[..., c] = edges * (glow_color[c] / 255.0)
+            blurred = cv2.GaussianBlur(edges_colored, (glow_radius | 1, glow_radius | 1), 0)
+            result = cv2.addWeighted(image, 1.0, blurred, glow_strength, 0)
+            return {"image": result}
+
+        elif operator == "fire_effect":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for fire_effect operation")
+            intensity = node.parameters.get("intensity", 0.7)
+            color_temperature = node.parameters.get("color_temperature", 0.8)
+            fire = np.zeros_like(image)
+            fire[..., 2] = np.clip(image[..., 2] * (1 + intensity), 0, 255)
+            fire[..., 1] = np.clip(image[..., 1] * (1 - color_temperature), 0, 255)
+            result = cv2.addWeighted(image, 1 - intensity, fire, intensity, 0)
+            return {"image": result}
+
+        elif operator == "smoke_effect":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for smoke_effect operation")
+            density = node.parameters.get("density", 0.5)
+            opacity = node.parameters.get("opacity", 0.3)
+            h, w = image.shape[:2]
+            smoke = np.random.normal(128, 50, (h, w)).astype(np.uint8)
+            smoke = cv2.GaussianBlur(smoke, (31, 31), 0)
+            smoke = cv2.cvtColor(smoke, cv2.COLOR_GRAY2BGR)
+            result = cv2.addWeighted(image, 1 - opacity, smoke, opacity * density, 0)
+            return {"image": result}
+
+        elif operator == "rain_effect":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for rain_effect operation")
+            intensity = node.parameters.get("intensity", 0.6)
+            angle = node.parameters.get("angle", 15.0)
+            h, w = image.shape[:2]
+            rain = np.zeros_like(image)
+            num_drops = int(h * w * intensity * 0.002)
+            for _ in range(num_drops):
+                x = np.random.randint(0, w)
+                y = np.random.randint(0, h)
+                length = np.random.randint(10, 20)
+                thickness = np.random.randint(1, 2)
+                end_x = int(x + length * np.sin(np.deg2rad(angle)))
+                end_y = int(y + length * np.cos(np.deg2rad(angle)))
+                cv2.line(rain, (x, y), (end_x, end_y), (200, 200, 200), thickness)
+            rain = cv2.GaussianBlur(rain, (3, 3), 0)
+            result = cv2.addWeighted(image, 1, rain, intensity, 0)
+            return {"image": result}
+
+        elif operator == "snow_effect":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for snow_effect operation")
+            density = node.parameters.get("density", 0.5)
+            size = node.parameters.get("size", 0.8)
+            h, w = image.shape[:2]
+            snow = np.zeros_like(image)
+            num_flakes = int(h * w * density * 0.001)
+            for _ in range(num_flakes):
+                x = np.random.randint(0, w)
+                y = np.random.randint(0, h)
+                radius = int(np.random.randint(1, 4) * size)
+                cv2.circle(snow, (x, y), radius, (255, 255, 255), -1)
+            snow = cv2.GaussianBlur(snow, (5, 5), 0)
+            result = cv2.addWeighted(image, 1, snow, density, 0)
+            return {"image": result}
+
+        elif operator == "light_leak":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for light_leak operation")
+            intensity = node.parameters.get("intensity", 0.4)
+            color = np.array(node.parameters.get("color", [255, 200, 150]))
+            position = node.parameters.get("position", "top")
+            h, w = image.shape[:2]
+            leak = np.zeros_like(image)
+            if position == "top":
+                leak[:h//4, :] = color
+            elif position == "bottom":
+                leak[-h//4:, :] = color
+            elif position == "left":
+                leak[:, :w//4] = color
+            elif position == "right":
+                leak[:, -w//4:] = color
+            leak = cv2.GaussianBlur(leak, (101, 101), 0)
+            result = cv2.addWeighted(image, 1, leak, intensity, 0)
+            return {"image": result}
+
+        elif operator == "film_grain":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for film_grain operation")
+            intensity = node.parameters.get("intensity", 0.3)
+            size = node.parameters.get("size", 1.0)
+            noise = np.random.normal(0, 25 * intensity, image.shape).astype(np.float32)
+            result = image.astype(np.float32) + noise
+            result = np.clip(result, 0, 255).astype(np.uint8)
+            return {"image": result}
+
+        elif operator == "vignette":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for vignette operation")
+            intensity = node.parameters.get("intensity", 0.5)
+            radius = node.parameters.get("radius", 0.7)
+            feather = node.parameters.get("feather", 0.3)
+            h, w = image.shape[:2]
+            Y, X = np.ogrid[:h, :w]
+            center_x, center_y = w / 2, h / 2
+            dist = np.sqrt((X - center_x) ** 2 + (Y - center_y) ** 2)
+            mask = 1 - np.clip((dist / (radius * min(center_x, center_y))) ** feather, 0, 1) * intensity
+            result = image * mask[..., None]
+            result = np.clip(result, 0, 255).astype(np.uint8)
+            return {"image": result}
+
+        elif operator == "lens_flare":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for lens_flare operation")
+            position_x = node.parameters.get("position_x", 0.8)
+            position_y = node.parameters.get("position_y", 0.2)
+            intensity = node.parameters.get("intensity", 0.6)
+            color = np.array(node.parameters.get("color", [255, 255, 200]))
+            h, w = image.shape[:2]
+            flare = np.zeros_like(image)
+            cx, cy = int(position_x * w), int(position_y * h)
+            cv2.circle(flare, (cx, cy), int(min(h, w) * 0.1), color.tolist(), -1)
+            flare = cv2.GaussianBlur(flare, (101, 101), 0)
+            result = cv2.addWeighted(image, 1, flare, intensity, 0)
+            return {"image": result}
+
+        elif operator == "chromatic_aberration":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for chromatic_aberration operation")
+            red_offset = node.parameters.get("red_offset", [2, 0])
+            blue_offset = node.parameters.get("blue_offset", [-2, 0])
+            green_offset = node.parameters.get("green_offset", [0, 0])
+            result = image.copy()
+            for c, offset in zip([2, 1, 0], [red_offset, green_offset, blue_offset]):
+                M = np.array([[1, 0, offset[0]], [0, 1, offset[1]]], dtype=np.float32)
+                result[..., c] = cv2.warpAffine(image[..., c], M, (image.shape[1], image.shape[0]), borderMode=cv2.BORDER_REFLECT)
+            return {"image": result}
+
+        elif operator == "bloom":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for bloom operation")
+            threshold = node.parameters.get("threshold", 200.0)
+            intensity = node.parameters.get("intensity", 0.5)
+            radius = node.parameters.get("radius", 10)
+            mask = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) > threshold
+            bloom = cv2.GaussianBlur(image, (radius | 1, radius | 1), 0)
+            result = image.copy()
+            result[mask] = cv2.addWeighted(image, 1 - intensity, bloom, intensity, 0)[mask]
+            return {"image": result}
+
+        elif operator == "hdr_effect":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for hdr_effect operation")
+            gamma = node.parameters.get("gamma", 0.8)
+            saturation = node.parameters.get("saturation", 1.2)
+            detail = node.parameters.get("detail", 0.3)
+            img = cv2.detailEnhance(image, sigma_s=10, sigma_r=0.15)
+            img = cv2.convertScaleAbs(img, alpha=saturation, beta=0)
+            img = cv2.addWeighted(image, 1 - detail, img, detail, 0)
+            inv_gamma = 1.0 / gamma
+            table = np.array([((i / 255.0) ** inv_gamma) * 255 for i in np.arange(0, 256)]).astype("uint8")
+            img = cv2.LUT(img, table)
+            return {"image": img}
+
+        elif operator == "cross_processing":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for cross_processing operation")
+            color_shift = node.parameters.get("color_shift", 0.3)
+            contrast = node.parameters.get("contrast", 1.3)
+            saturation = node.parameters.get("saturation", 1.5)
+            img = cv2.cvtColor(image, cv2.COLOR_BGR2HSV).astype(np.float32)
+            img[..., 0] += color_shift * 30
+            img[..., 1] *= saturation
+            img[..., 2] *= contrast
+            img = np.clip(img, 0, 255).astype(np.uint8)
+            img = cv2.cvtColor(img, cv2.COLOR_HSV2BGR)
+            return {"image": img}
+
+        elif operator == "lomo_effect":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for lomo_effect operation")
+            vignette = node.parameters.get("vignette", 0.6)
+            saturation = node.parameters.get("saturation", 1.4)
+            contrast = node.parameters.get("contrast", 1.2)
+            light_leak = node.parameters.get("light_leak", 0.3)
+            h, w = image.shape[:2]
+            # Vignette
+            Y, X = np.ogrid[:h, :w]
+            center_x, center_y = w / 2, h / 2
+            dist = np.sqrt((X - center_x) ** 2 + (Y - center_y) ** 2)
+            mask = 1 - np.clip((dist / (0.7 * min(center_x, center_y))) ** 2, 0, 1) * vignette
+            img = image * mask[..., None]
+            # Saturation/contrast
+            img = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_BGR2HSV).astype(np.float32)
+            img[..., 1] *= saturation
+            img[..., 2] *= contrast
+            img = np.clip(img, 0, 255).astype(np.uint8)
+            img = cv2.cvtColor(img, cv2.COLOR_HSV2BGR)
+            # Light leak
+            leak = np.zeros_like(img)
+            leak[:, -w//4:] = [255, 200, 150]
+            leak = cv2.GaussianBlur(leak, (101, 101), 0)
+            img = cv2.addWeighted(img, 1, leak, light_leak, 0)
+            return {"image": img}
+
+        # --- New operators for advanced region processing ---
+        elif operator == "mask":
+            image = input_data.get("image")
+            mask = input_data.get("mask")
+            if image is None or mask is None:
+                raise ValueError("Image and mask required for mask operation")
+            # Ensure mask shape matches image
+            if mask.ndim == 2 and image.ndim == 3:
+                mask = mask[..., None]
+            result = image * (mask > 0)
+            return {"image": result}
+
+        elif operator == "crop_region":
+            image = input_data.get("image")
+            if image is None:
+                raise ValueError("No image provided for crop_region operation")
+            x = node.parameters.get("x", 0)
+            y = node.parameters.get("y", 0)
+            width = node.parameters.get("width", 100)
+            height = node.parameters.get("height", 100)
+            result = image[y:y+height, x:x+width]
+            return {"image": result}
+
+        elif operator == "fill_region":
+            image = input_data.get("image")
+            mask = input_data.get("mask", None)
+            color = node.parameters.get("color", [255,255,255])
+            pattern = node.parameters.get("pattern", "solid")
+            result = image.copy()
+            if mask is not None and len(mask) > 0:
+                if mask.ndim == 2 and result.ndim == 3:
+                    mask = mask[..., None]
+                if pattern == "solid":
+                    result[mask > 0] = color
+                elif pattern == "stripes":
+                    # Simple horizontal stripes
+                    stripe = np.zeros_like(result)
+                    stripe[::10] = color
+                    result[mask > 0] = stripe[mask > 0]
+                elif pattern == "checkerboard":
+                    cb = np.indices(result.shape[:2]).sum(axis=0) % 2
+                    cb = np.repeat(cb[..., None], result.shape[2], axis=2)
+                    result[(mask > 0) & (cb == 1)] = color
+                # Add more patterns as needed
+            else:
+                if pattern == "solid":
+                    result[:] = color
+                elif pattern == "stripes":
+                    result[::10] = color
+                elif pattern == "checkerboard":
+                    cb = np.indices(result.shape[:2]).sum(axis=0) % 2
+                    cb = np.repeat(cb[..., None], result.shape[2], axis=2)
+                    result[cb == 1] = color
+            return {"image": result}
+
         else:
             raise ValueError(f"Unknown operator: {operator}")
     
@@ -626,7 +1482,8 @@ CRITICAL RULES:
 - For positioning, use reasonable fixed values (e.g., 50, 100, 200)
 - For colors, use BGR format as arrays: [255, 255, 255] for white, [0, 0, 255] for red
 - For text positioning, use simple integers like 50, 100, 200
-- Do not use variables or calculations in JSON values"""
+- Do not use variables or calculations in JSON values
+- **If you use a 'mask' node, you MUST always create a node that produces a mask (such as a threshold, segmentation, or similar node) and connect its output to the 'mask' input of the 'mask' node. The 'mask' input must never be missing.**"""
         
         # Create user prompt
         user_prompt = f"""Please create an image processing workflow for the following request:
@@ -683,6 +1540,7 @@ Please generate a JSON workflow that will process this image according to the us
             return self._create_fallback_workflow(prompt)
     
     def _image_to_base64(self, image: np.ndarray) -> str:
+        import cv2
         """Convert numpy image to base64 string"""
         # Convert BGR to RGB if needed
         if len(image.shape) == 3 and image.shape[2] == 3:
